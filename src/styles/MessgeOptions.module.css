@@ -1,0 +1,127 @@
+.container {
+  max-height: 330px;
+  background: var(--primary-background);
+  border-radius: 10px;
+  padding: 6px;
+  width: 90%;
+}
+
+.container::-webkit-scrollbar {
+  width: 4px;
+  background: var(--secondary-background);
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: var(--lighter-background);
+}
+
+.shadow {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.412);
+}
+
+.container button {
+  border-radius: 5px;
+}
+
+.container button:hover {
+  background: var(--light-background) !important;
+}
+
+.container button {
+  font-size: 0.7rem;
+}
+
+.reaction {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+}
+
+.reaction span,
+.emoji_grid span {
+  font-size: 21px;
+  width: 38px;
+  height: 38px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+/* .reaction span {
+  background: var(--light-background);
+} */
+
+.reaction span svg {
+  color: var(--secondary-text-color);
+}
+
+.reaction span:hover,
+.emoji_grid span:hover {
+  transform: scale(1.1);
+  background: var(--lighter-background);
+}
+
+.emoji_grid {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: 100%;
+  column-gap: 4px;
+  row-gap: 4px;
+}
+
+.reactions_container {
+  width: 100%;
+}
+
+.reactions_container h2 {
+  font-size: 1rem;
+  color: var(--primary-text-color);
+  font-weight: 500;
+  padding: 10px;
+  width: 100%;
+  border-bottom: 2px solid var(--lighter-background);
+}
+
+.reacted_box {
+  width: 100%;
+}
+
+.reactions {
+  max-height: 200px;
+  width: 100%;
+  overflow-y: scroll;
+  padding: 10px 0px 0px 0px;
+}
+
+.reactions::-webkit-scrollbar {
+  width: 0px;
+  background: none;
+}
+
+.reaction_box {
+  user-select: none;
+  display: flex;
+  align-items: center;
+  padding-right: 5px;
+  border-radius: 10px;
+}
+
+.reaction_emoji {
+  font-size: 30px;
+}
+
+.reaction_box:hover {
+  background: var(--light-background) !important;
+}

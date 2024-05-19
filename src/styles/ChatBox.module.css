@@ -1,0 +1,106 @@
+.container {
+  width: 100%;
+  padding: 12px 10px;
+  gap: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  border-radius: 10px;
+  margin: 2px 0px;
+  text-decoration: none;
+}
+
+.container:hover {
+  background: var(--light-background) !important;
+}
+
+.pfp {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.status_active {
+  border: 2px solid var(--highlight-background);
+  padding: 4px;
+}
+
+.pfp img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.details {
+  width: calc(100% - 70px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.user_name {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--primary-text-color);
+  font-weight: 400;
+  align-items: center;
+}
+
+.user_name span {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--secondary-text-color);
+}
+
+.latest_message {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  color: var(--secondary-text-color);
+  margin-top: 4px;
+}
+
+.latest_message span {
+  font-size: 0.74rem;
+}
+.latest_message_ab {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+
+.latest_message_counter {
+  font-size: 13px !important;
+  color: var(--primary-dark-background);
+  font-weight: 600;
+  width: 22px;
+  height: 22px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: var(--highlight-text-color);
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user_name .admin:first-child {
+  color: var(--random-light-color-one) !important;
+  border: 1px solid var(--random-light-color-one) !important;
+  padding: 0px 10px;
+  font-size: 10px !important;
+  border-radius: 5px;
+  margin-left: 10px;
+}

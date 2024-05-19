@@ -1,0 +1,55 @@
+.shadow {
+  height: 100dvh;
+  width: 100vw;
+  position: fixed;
+  top: 0%;
+  left: 0%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 39;
+}
+
+.container {
+  background: var(--primary-background);
+  width: 90%;
+  max-width: 450px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--lighter-background);
+}
+
+.part_one {
+  padding: 30px;
+  width: 100%;
+}
+
+.part_one h3 {
+  color: var(--primary-text-color);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.part_one p {
+  margin-top: 10px;
+  color: var(--secondary-text-color);
+  font-size: 0.7rem;
+}
+
+.part_two {
+  padding: 30px;
+  width: 100%;
+  background: var(--primary-dark-background);
+}
+
+.part_two {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.part_two button {
+  white-space: nowrap;
+}

@@ -1,0 +1,137 @@
+.container {
+  width: 100%;
+  padding: 12px 10px;
+  gap: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  border-radius: 10px;
+  margin: 2px 0px;
+  text-decoration: none;
+  height: 80px;
+}
+
+.select_off .container:hover {
+  background: var(--light-background);
+}
+.select_on .container:hover {
+  background: none;
+}
+
+.select_on:hover {
+  background: var(--light-background);
+}
+
+.message_container {
+  width: 80px;
+  height: 100%;
+}
+
+.message_container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.message_container img,
+.message_container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.checkbox {
+  width: 23px;
+  height: 23px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+}
+
+.checked {
+  background: var(--lighter-highlight-background);
+  border: 2px solid var(--lighter-highlight-background);
+}
+
+.checked svg {
+  color: var(--primary-text-color);
+  font-size: 15px;
+}
+
+.selected_message_box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.unchecked {
+  background: var(--primary-dark-background);
+  border: 2px solid var(--lighter-background);
+}
+
+.selected {
+  background: var(--selected-background) !important;
+}
+
+.selected .container:hover {
+  background: none;
+}
+
+.chat_details {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.latest_message {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  color: var(--secondary-text-color);
+  margin-top: 5px;
+}
+
+.latest_message,
+.latest_message span {
+  font-size: 0.74rem;
+}
+.latest_message span:first-child {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+
+.user_name {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--primary-text-color);
+  font-weight: 400;
+  align-items: center;
+}
+
+.user_name span {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--secondary-text-color);
+}
+
+.user_name {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--primary-text-color);
+  font-weight: 400;
+  align-items: center;
+}
