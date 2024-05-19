@@ -14,7 +14,7 @@ import { handleLoading, handleShowSettings, setIsError } from "../slice/utilityS
 import styles from "../styles/SideNavbar.module.css";
 import sendNotification from "../utils/sendNotification";
 import ConfirmDialog from "./ConfirmDialog";
-import { handleLogout } from "../slice/userSlice";
+import { handleLogout, setUser } from "../slice/userSlice";
 import { useCustomSelector } from "../hooks/useCustomSelector";
 
 interface SideNavbarProps { }
@@ -33,6 +33,7 @@ const SideNavbar: FC<SideNavbarProps> = () => {
         credentials: "include",
         headers: { "Content-Type": "application/json" }
       })
+      dispatch(setUser({}))
       localStorage.removeItem("isNotificationPermitted")
       localStorage.removeItem("notification_permission_asked_on")
       localStorage.removeItem("notification_settings")
