@@ -123,7 +123,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
   const handleIntersection = (entries: any) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        if (loadingMoreChats.current) return console.log("Function has been returned")
+        if (loadingMoreChats.current) return
         loadingMoreChatsFunc()
       }
     });
@@ -145,7 +145,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
       dispatch(setMoreLoadedChats(data.chats))
       offset.current = offset.current + 15;
     } catch (err) {
-      console.log(err)
+      dispatch(handleIsE)
     }
   }
 

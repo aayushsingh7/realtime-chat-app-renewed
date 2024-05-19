@@ -12,6 +12,7 @@ import { fetchMessages, handleFetchChat, handleIsMoreMessages, setMoreMessages }
 import { ChatType, MessageType, UserType } from "../types/types";
 import chatInfo from "../utils/chatInfo";
 import messageSeenFunc from "../utils/messageSeenFunc";
+import { setIsError } from "../slice/utilitySlices";
 
 interface MessagesProps {
   socket: any;
@@ -163,7 +164,7 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
   const handleIntersection = (entries: any) => {
     entries.forEach((entry: any) => {
       if (entry.isIntersecting) {
-        if (loadingMoreMessages.current) return console.log("Function has been returned")
+        if (loadingMoreMessages.current) return
         loadMoreMessages()
         setIsInView(true)
       } else {
@@ -191,7 +192,7 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
       dispatch(setMoreMessages({ chatId: chatId, messages: data.messages }))
       offset.current = offset.current + 25;
     } catch (err) {
-      console.log(err)
+      dispatch(setIsError(true))
     }
   }
 

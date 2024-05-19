@@ -20,7 +20,8 @@ import {
 import {
   handleDiscardFileUpload,
   handleShowPreview,
-  handleShowUploadOption
+  handleShowUploadOption,
+  setIsError
 } from "../slice/utilitySlices";
 import styles from "../styles/MessageInput.module.css";
 import { MessageType, UserType } from "../types/types";
@@ -79,14 +80,12 @@ const MessageInput: FC<MessageInputProps> = ({
     setFileSize(file.size);
     dispatch(handleShowPreview(true));
     dispatch(handleShowUploadOption(false));
-    console.log("loading started")
     try {
       const reader = new FileReader();
 
       reader.onload = (e: any) => {
         const dataURL = e.target.result;
         setFile(dataURL);
-        console.log("loading ended")
         setLoadingPreview(false);
         const document_type: string = dataURL.substring(
           dataURL.indexOf(":") + 1,
@@ -97,13 +96,12 @@ const MessageInput: FC<MessageInputProps> = ({
 
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Error:", error);
+      dispatch(setIsError(true))
     }
   };
 
 
   const addMessagesToQueue = async (e?: any) => {
-    console.log("atleast messages are working")
     if (showPreview && !previewUrl || !showPreview && !textMessage) return
     if (e && e.key === "Enter" || e && e.type === "click") {
       dispatch(handleIsReplying(false));
@@ -146,7 +144,6 @@ const MessageInput: FC<MessageInputProps> = ({
 
     if (messageQueue.current.length > 0 && !requestProcessing.current) {
       const currentMessage = messageQueue.current[0];
-      console.log("2. current message sent to sendNewMessages function()");
       await sendNewMessage(currentMessage);
     }
   };

@@ -28,7 +28,6 @@ const Settings: FC<SettingsProps> = () => {
   const [showAlertMessage, setShowAlertMessage] = useState<boolean>(false)
 
   const editNotificationSettings = (fieldName: string, value: boolean) => {
-    console.log(fieldName)
     const updatedSettings = {
       ...notification_settings,
       [fieldName]: value

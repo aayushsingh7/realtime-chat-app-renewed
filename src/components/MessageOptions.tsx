@@ -82,7 +82,7 @@ const MessageOptions: FC<MessageOptionsProps> = ({ socket }) => {
           [selectedMessage._id],
           selectedChat,
           socket
-        )} onCancle={() => console.log("cancle")} />}
+        )} onCancle={() => setIsConfirmed(false)} />}
 
       {!isConfirmed && <div
         className={styles.container}

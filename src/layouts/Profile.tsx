@@ -229,7 +229,7 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
       dispatch(addNewMessage({ newMessage: alertMessage }));
       socket.emit(isUserBlocked ? "unBlock user" : "block user", user._id, chatInfo(chat, user)._id, chat)
     } catch (err) {
-      console.log(err)
+      dispatch(setIsError(true))
     }
     dispatch(handleLoading(false))
     dispatch(handleShowProfile(false))

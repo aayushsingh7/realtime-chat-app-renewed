@@ -24,10 +24,7 @@ const deleteMessage = async (
       }
     );
     const data = await response.json();
-    console.log(data);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 };
 
 export default deleteMessage;

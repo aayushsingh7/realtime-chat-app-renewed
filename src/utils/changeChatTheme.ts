@@ -21,9 +21,7 @@ const changeChatTheme = async (
     );
     const data = await response.json();
     return data.theme;
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 };
 
 export default changeChatTheme;

@@ -29,7 +29,6 @@ const initialState = {
 };
 
 export const fetchChats = createAsyncThunk("userSlice/fetchChats", async () => {
-  console.log("Fetch Chats are working fine");
   const response = await fetch(`${import.meta.env.VITE_API_URL}/chats`, {
     method: "GET",
     credentials: "include",
@@ -59,7 +58,6 @@ export const fetchMessages = createAsyncThunk(
 export const fetchStarredMessages = createAsyncThunk(
   "chatSlice/fetchStarredMessages",
   async () => {
-    console.log("abe ho jana");
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/starred-messages`,
       {
@@ -200,7 +198,7 @@ const chatSlice = createSlice({
     },
     addNewMessage(state, action) {
       const { dummyMessageId, newMessage } = action.payload;
-      console.log("newMessage", newMessage);
+
       state.selectedChat = dummyMessageId
         ? {
             ...state.selectedChat,
@@ -622,7 +620,6 @@ const chatSlice = createSlice({
       state.chatsLoading = true;
     });
     builder.addCase(fetchChats.fulfilled, (state, action) => {
-      console.log(action.payload);
       state.chats = action.payload.chats;
       state.isMoreChats = action.payload.isMore;
       state.chatsLoading = false;

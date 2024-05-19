@@ -29,9 +29,7 @@ const alertMessageFunc = async (
         await response.json();
       return alertMessage;
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 };
 
 export default alertMessageFunc;
