@@ -331,7 +331,7 @@ const App: FC<AppProps> = () => {
         <Routes>
           <Route
             element={
-              <ProtectedRoute >
+              <ProtectedRoute>
                 <SideNavbar />
                 <Chats socket={socketRef.current} />
                 <Home />
@@ -341,7 +341,7 @@ const App: FC<AppProps> = () => {
           />
           <Route
             element={
-              <ProtectedRoute >
+              <ProtectedRoute>
                 <SideNavbar />
                 <Chats socket={socketRef.current} />
                 <Chat
@@ -353,9 +353,9 @@ const App: FC<AppProps> = () => {
             }
             path="/chat/:id"
           />
-          <Route element={<ProtectedRoute><Login /></ProtectedRoute>} path="/login" />
-          <Route element={<ProtectedRoute><Register /></ProtectedRoute>} path="/register" />
-          <Route element={<ProtectedRoute redirectPath="/login"><SideNavbar /><Chats socket={socketRef.current} /> <NotFound /></ProtectedRoute>} path="*" />
+          <Route element={<Login />} path="/login" />
+          <Route element={<Register />} path="/register" />
+          <Route element={<ProtectedRoute><SideNavbar /><Chats socket={socketRef.current} /> <NotFound /></ProtectedRoute>} path="*" />
         </Routes>
       </div>
     </div >
