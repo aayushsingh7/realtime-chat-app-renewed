@@ -116,7 +116,7 @@ const MessageBox: FC<MessageBoxProps> = ({ message, selectMessage, selectMessage
                 {...defaultStyles[message.fileName?.substring(message.fileName.lastIndexOf(".") + 1)]}
               />
               : message.msgType.includes("image") ?
-                <img src={message.message} alt="" /> :
+                <img loading="eager" src={message.message} alt="" /> :
                 message.msgType.includes("video") ?
                   <video src={message.message} ></video> :
                   null}

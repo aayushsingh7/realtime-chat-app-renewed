@@ -280,6 +280,7 @@ const App: FC<AppProps> = () => {
   }
 
 
+
   useEffect(() => {
     if (showLoading) {
       document.body.style.overflow = "hidden"
@@ -299,7 +300,7 @@ const App: FC<AppProps> = () => {
           btnText="Allow notification"
           heading="Allow notifications?"
           body="Please presss 'allow' to get notifications and stay updated"
-          onCancle={() => dispatch(handleAskPermission(false))}
+          onCancle={() => { dispatch(handleAskPermission(false)); allowNotification() }}
           onConfirm={() => { dispatch(handleAskPermission(false)); allowNotification() }} />}
       <div className="app">
         {showUploadOptions ||

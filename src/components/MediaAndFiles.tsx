@@ -21,6 +21,7 @@ const MediaAndFiles: FC<MediaAndFilesProps> = ({
 }) => {
 
   const dispatch = useAppDispatch()
+  console.log(data)
   return (
     <div
       className={styles.part_two}
@@ -54,7 +55,7 @@ const MediaAndFiles: FC<MediaAndFilesProps> = ({
                     extension={file.extension}
                     {...defaultStyles[file.extension]}
                   />
-                  : file.msgType.includes("image") ?
+                  : file?.msgType?.includes("image") ?
                     <img src={file.message} alt="" /> :
                     file.msgType.includes("video") ?
                       <video src={file.message} ></video> :

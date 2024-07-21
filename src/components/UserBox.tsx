@@ -85,7 +85,7 @@ const UserBox: FC<UserBoxProps> = ({
   return (
     <div className={styles.container} onClick={fetchChat}>
       <div className={styles.pfp}>
-        <img src={user.image} alt={user.name} />
+        <img loading="eager" src={user.image} alt={user.name} />
       </div>
       <div className={styles.details}>
         <p
