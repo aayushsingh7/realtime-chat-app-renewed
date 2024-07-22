@@ -126,7 +126,7 @@ const Message: FC<MessageProps> = ({
       {
         selectedChat.isGroupChat && data.sender._id !== import.meta.env.VITE_MESSAGE_BOT_ID && data.sender._id !== loggedInUser._id ?
           <div className={styles.group_user_pic}>
-            {!isNewUserMessage(selectedChat, data) && <img alt="user" src={data.sender.image} />}
+            {!isNewUserMessage(selectedChat, data) && <img loading="eager" alt="user" src={data.sender.image} />}
           </div> : null
       }
 
@@ -279,7 +279,7 @@ const Message: FC<MessageProps> = ({
                 .includes(loggedInUser._id) ? (
                 <AiFillStar />
               ) : null}
-              {data.status === "sending" ? null : data.sender._id === loggedInUser._id ? everyoneIncluded ? <BsCheck2All style={{ color: "var(--seen-message-color)", fontSize: "16px", marginLeft: "5px" }} /> :
+              {data.status === "sending" || data.status === "error" ? null : data.sender._id === loggedInUser._id ? everyoneIncluded ? <BsCheck2All style={{ color: "var(--seen-message-color)", fontSize: "16px", marginLeft: "5px" }} /> :
                 <BsCheck2All style={{ fontSize: "16px", marginLeft: "5px" }} /> : null}
             </span>
           )}

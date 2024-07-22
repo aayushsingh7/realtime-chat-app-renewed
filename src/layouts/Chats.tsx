@@ -15,7 +15,7 @@ import { useAppDispatch } from "../hooks/useAppDispatch";
 import { useCustomSelector } from "../hooks/useCustomSelector";
 import { message } from "../models/message";
 import { fetchStarredMessages, handleCreateGroup, handleIsMoreChats, handleShowStarredMessages, setMoreLoadedChats } from "../slice/chatSlice";
-import { handleShowSettings } from "../slice/utilitySlices";
+import { handleShowSettings, setIsError } from "../slice/utilitySlices";
 import styles from "../styles/Chats.module.css";
 import { ChatType, MessageType, UserType } from "../types/types";
 import searchUsers from "../utils/searchUsers";
@@ -145,7 +145,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
       dispatch(setMoreLoadedChats(data.chats))
       offset.current = offset.current + 15;
     } catch (err) {
-      dispatch(handleIsE)
+      dispatch(setIsError(true))
     }
   }
 
@@ -251,7 +251,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
               </div>
             )
           ) : chats.length > 0 ? (
-            chats
+            chats.filter((chat)=> chat.messages.length > 0)
               .map((chat) => {
                 return <ChatBox socket={socket} key={chat._id} chat={chat} />;
               })

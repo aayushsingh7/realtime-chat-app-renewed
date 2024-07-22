@@ -10,7 +10,6 @@ const Home: FC<HomeProps> = ({ }) => {
         <PiWechatLogoFill />
         <h3>Welcome To ChatVerse</h3>
         <p>Send and receive messages without keeping your phone online.</p>
-
       </div>
     </div>
   );

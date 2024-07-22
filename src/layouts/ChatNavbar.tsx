@@ -79,6 +79,7 @@ const ChatNavbar: FC<ChatNavbarProps> = ({ typingUser, isTyping, selectedMessage
         >
           <div className={styles.pfp}>
             <img
+              loading="eager"
               src={chatInfo(selectedChat, loggedInUser).image}
               alt="Profile pic"
             />
