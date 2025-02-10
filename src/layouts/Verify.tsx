@@ -36,6 +36,7 @@ const Verify: FC<VerifyProps> = () => {
       const { user }: { user: UserType } = await response.json();
       if (response.status === 200) {
         dispatch(setUser(user));
+        //@ts-ignore
         dispatch(fetchChats(user._id));
         dispatch(setVerify(false));
         if (!isNotificationPermissionExists) {

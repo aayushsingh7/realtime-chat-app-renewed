@@ -16,6 +16,18 @@
   display: flex;
 }
 
+.intro {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.intro span {
+  font-size: 0.9rem;
+  margin-top: 10px;
+  color: var(--seen-message-color);
+}
+
 .header {
   width: 100%;
   display: flex;

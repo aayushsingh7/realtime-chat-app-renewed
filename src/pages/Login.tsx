@@ -48,7 +48,7 @@ const Login: FC<LoginProps> = ({ }) => {
         </div>
         <div className={styles.part_two}>
           <form className={styles.form} onSubmit={login}>
-            <h2>Welcome Back🎉</h2>
+            <h2>Login🚀</h2>
             <div className={styles.input_container}>
               <Input type="email" autoComplete="off" required style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)" }} placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
               <Input autoComplete="off" type="password" required style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)" }} placeholder="Enter your password" onChange={(e) => setPassword(e.target.value)} value={password} />

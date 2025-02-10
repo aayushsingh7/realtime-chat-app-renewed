@@ -1,9 +1,10 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { BsChatSquareText } from "react-icons/bs";
 import { FaRegStar } from "react-icons/fa";
-import { IoCallOutline, IoChatbubbleEllipsesOutline, IoCheckbox, IoCheckboxOutline, IoCreateOutline, IoSettingsOutline } from "react-icons/io5";
+import { IoChatbubbleEllipsesOutline, IoCheckbox, IoCheckboxOutline, IoCreateOutline, IoSettingsOutline } from "react-icons/io5";
 import { LuCircleDashed } from "react-icons/lu";
-import { PiDogFill, PiDogThin, PiShootingStarLight } from "react-icons/pi";
+import { MdLogout } from "react-icons/md";
+import { PiDogThin, PiShootingStarLight } from "react-icons/pi";
+import { RiMenuSearchLine } from "react-icons/ri";
 import { TbStarOff } from "react-icons/tb";
 import { useParams } from "react-router-dom";
 import ChatBox from "../components/ChatBox";
@@ -13,8 +14,8 @@ import MessageBox from "../components/MessageBox";
 import UserBox from "../components/UserBox";
 import { useAppDispatch } from "../hooks/useAppDispatch";
 import { useCustomSelector } from "../hooks/useCustomSelector";
-import { message } from "../models/message";
 import { fetchStarredMessages, handleCreateGroup, handleIsMoreChats, handleShowStarredMessages, setMoreLoadedChats } from "../slice/chatSlice";
+import { handleLogout } from "../slice/userSlice";
 import { handleShowSettings, setIsError } from "../slice/utilitySlices";
 import styles from "../styles/Chats.module.css";
 import { ChatType, MessageType, UserType } from "../types/types";
@@ -22,10 +23,6 @@ import searchUsers from "../utils/searchUsers";
 import starredMessagesFunc from "../utils/starredMessages";
 import ConfirmDialog from "./ConfirmDialog";
 import Settings from "./Settings";
-import { MdLogout } from "react-icons/md";
-import { handleLogout } from "../slice/userSlice";
-import { DiProlog } from "react-icons/di";
-import { RiMenuSearchLine } from "react-icons/ri";
 
 interface ChatsProps {
   socket: any;
@@ -62,26 +59,6 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
   };
 
 
-  const dummyMessage: MessageType = {
-    _id: "6639c69301b3ff2b35e42df9",
-    isReply: false,
-    repliedTo: message,
-    createdAt: new Date().toISOString(),
-    document: false,
-    message: "Hello how are u i am under the water, please help me",
-    msgType: "text",
-    fileSize: 0,
-    fileName: null,
-    reactEmoji: [],
-    starredBy: [],
-    sender: {
-      _id: loggedInUser._id,
-      name: loggedInUser.name,
-      image: loggedInUser.image,
-    },
-    seenBy: [],
-    status: "sending",
-  };
   const [loading, setLoading] = useState<boolean>(false);
   const {
     chats,
@@ -121,7 +98,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
 
 
   const handleIntersection = (entries: any) => {
-    entries.forEach((entry) => {
+    entries.forEach((entry: any) => {
       if (entry.isIntersecting) {
         if (loadingMoreChats.current) return
         loadingMoreChatsFunc()
@@ -251,14 +228,17 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
               </div>
             )
           ) : chats.length > 0 ? (
-            chats.filter((chat)=> chat.messages.length > 0)
+            chats.filter((chat) => chat.messages.length > 0)
               .map((chat) => {
                 return <ChatBox socket={socket} key={chat._id} chat={chat} />;
               })
           ) : (
             <div className="flex" style={{ width: "100%", height: "80%", flexDirection: "column", userSelect: "none" }}>
               <RiMenuSearchLine style={{ color: "var(--highlight-text-color)", fontSize: "6rem" }} />
-              <p style={{ fontSize: "0.9rem", color: "var(--secondary-text-color)", marginTop: "20px" }}>Search users and start chatting!</p>
+              <p className={styles.intro} style={{ fontSize: "0.9rem", color: "var(--secondary-text-color)", marginTop: "20px" }}>
+                Search users and start chatting!
+                <span>Search "a" to view all users</span>
+              </p>
             </div>
           )}
 

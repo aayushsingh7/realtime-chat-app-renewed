@@ -30,6 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 100px;
   flex-direction: column;
   background-image: url("https://res.cloudinary.com/dvk80x6fi/image/upload/v1715375592/pattern-with-cute-panda-bears-random-oriented-vector-27509923_ruj1n2.jpg");
   background-repeat: no-repeat;

@@ -61,6 +61,7 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
       return
     }
 
+    //@ts-ignore
     dispatch(fetchMessages(id));
   }, [id]);
 
@@ -89,7 +90,10 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
   }, [selectedChat, loggedInUser, socket, messageSeenFunc]);
 
 
+
+
   useEffect(() => {
+    //@ts-ignore
     messageRef.current.scrollIntoView({
       behavior: "instant",
       block: "end",
@@ -128,9 +132,11 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
         setIsTyping(true);
       }
     });
+    //@ts-ignore
     socket.on("typing stopped", (typingUser: UserType, chat: ChatType) => {
 
       if (chat && chat._id === selectedChat._id) {
+        //@ts-ignore
         setTypingUser({})
         setIsTyping(false);
       }

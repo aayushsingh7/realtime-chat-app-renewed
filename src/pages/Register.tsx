@@ -53,7 +53,7 @@ const Register: FC<RegisterProps> = ({ }) => {
         <div className={styles.part_two}>
 
           <form className={styles.form} onSubmit={register}>
-            <h2>Register</h2>
+            <h2>Register Now🎯</h2>
             <div className={styles.input_container}>
               <Input autoComplete="off" type="text" name="name" value={name} onChange={(e) => setName(e.target.value)} required style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)", }} placeholder="Enter name" />
 
