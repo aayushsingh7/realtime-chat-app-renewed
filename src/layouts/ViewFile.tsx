@@ -14,15 +14,19 @@ import { handleViewFile } from "../slice/utilitySlices";
 import styles from "../styles/ViewFile.module.css";
 import donwloadFile from "../utils/donwloadFile";
 
-interface ViewFileProps { }
+interface ViewFileProps {
+    position: "relative" | "fixed";
+    exitFunc: () => void;
+}
 
-const ViewFile: FC<ViewFileProps> = () => {
+const ViewFile: FC<ViewFileProps> = ({ position, exitFunc }) => {
     const data = useCustomSelector((state) => state.chats.viewMessage);
     const dispatch = useAppDispatch()
 
 
     return (
-        <div className={styles.container}>
+        //@ts-ignore
+        <div className={`${styles.container} ${styles[position]}`}>
             <TransformWrapper>
                 {({ zoomIn, zoomOut, ...rest }) => (
                     <>
@@ -37,7 +41,7 @@ const ViewFile: FC<ViewFileProps> = () => {
                                         borderRadius: "10px",
                                         flexShrink: "0",
                                     }}
-                                    onClick={() => dispatch(handleViewFile(false))}
+                                    onClick={() => exitFunc ? exitFunc() : dispatch(handleViewFile(false))}
                                     children={
                                         <BsArrowLeft
                                             style={{

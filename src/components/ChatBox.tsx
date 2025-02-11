@@ -2,7 +2,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { AiOutlineClockCircle, AiOutlineFileImage } from "react-icons/ai";
 import { BsCheck2All } from "react-icons/bs";
 import { IoDocumentText } from "react-icons/io5";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useAppDispatch } from "../hooks/useAppDispatch";
 import { useCustomSelector } from "../hooks/useCustomSelector";
 import {
@@ -13,9 +13,10 @@ import {
   setSelectMessagesOption,
 } from "../slice/chatSlice";
 import styles from "../styles/ChatBox.module.css";
-import { ChatType, MessageType, UserType } from "../types/types";
+import { ChatType, MessageType, StatusType, UserType } from "../types/types";
 import chatInfo from "../utils/chatInfo";
 import formatTime from "../utils/formatTime";
+import getSecondUserDetails from "../utils/getSecondUserDetails";
 
 interface ChatBoxProps {
   chat: ChatType;
@@ -23,17 +24,22 @@ interface ChatBoxProps {
 }
 
 const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
+  const location = useLocation()
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
-  const [isTyping, setIsTyping] = useState<boolean>(false)
-  const [typingUser, setTypingUser] = useState<UserType>()
-
   const { loggedInUser }: { loggedInUser: UserType } = useCustomSelector(
     (state) => state.user
   );
   const { selectedChat }: { selectedChat: ChatType } = useCustomSelector(
     (state) => state.chats
   );
+
+  const isStatusSeen = getSecondUserDetails(chat.users, loggedInUser)
+    .status?.every((status: StatusType) => status.seenBy.includes(loggedInUser._id)) || [];
+
+  const [isTyping, setIsTyping] = useState<boolean>(false)
+  const [typingUser, setTypingUser] = useState<UserType>()
+
 
   const handleClick = () => {
     dispatch(handleShowChats(false))
@@ -73,6 +79,7 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
         setIsTyping(true);
       }
     });
+    //@ts-ignore
     socket.on("typing stopped", (typingUser: UserType, c: ChatType) => {
       if (c && c._id === chat._id) {
         //@ts-ignore
@@ -95,12 +102,12 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
     }
   }
 
-
+  console.log(location.pathname)
   return (
     <Link
       className={styles.container}
       onClick={handleClick}
-      to={`/chat/${chat._id}`}
+      to={location.pathname.startsWith("/status") ? `/status?userId=${chatInfo(chat, loggedInUser)._id}` : `/chat/${chat._id}`}
       style={{
         background:
           chat._id === id
@@ -109,7 +116,7 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
       }}
     >
       <div className={styles.pfp} style={{ background: "var(--light-background)" }}>
-        <img loading="eager" src={chatInfo(chat, loggedInUser).image} alt="profile pic" />
+        <img loading="eager" src={chatInfo(chat, loggedInUser).image} alt="profile pic" className={chat.isGroupChat ? "" : getSecondUserDetails(chat.users, loggedInUser).activeStatus ? !isStatusSeen ? styles.status_seen : styles.status_active : styles.no_status} />
       </div>
       <div className={styles.details}>
         <p className={styles.user_name}>

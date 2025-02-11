@@ -1,0 +1,20 @@
+.status_page {
+  display: flex;
+  align-items: center;
+  height: 100dvh;
+  width: 100%;
+}
+
+.status_temp {
+  height: 100%;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary-text-color);
+}
+
+.status {
+  height: 100%;
+  width: 100%;
+}

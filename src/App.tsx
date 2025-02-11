@@ -47,6 +47,7 @@ import "./styles/global.css";
 import { ChatType, MessageType, Notification_Settings, UserType } from "./types/types";
 import sendNotification from "./utils/sendNotification";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import Status from "./pages/Status";
 
 interface AppProps { }
 
@@ -292,7 +293,7 @@ const App: FC<AppProps> = () => {
   return (
     <div className="app_container default">
       {showLoading && <LoadingTask />}
-      {viewFile && <ViewFile />}
+      {viewFile && <ViewFile position="fixed" />}
       {verify && <Verify />}
       {isError && <Error />}
       {askPermission &&
@@ -353,6 +354,19 @@ const App: FC<AppProps> = () => {
               </ProtectedRoute>
             }
             path="/chat/:id"
+          />
+          <Route
+            element={
+              <ProtectedRoute>
+                <SideNavbar />
+                <Chats socket={socketRef.current} />
+                <Status
+                  socket={socketRef.current}
+                />
+
+              </ProtectedRoute>
+            }
+            path="/status"
           />
           <Route element={<Login />} path="/login" />
           <Route element={<Register />} path="/register" />

@@ -53,6 +53,9 @@ export interface UserType {
   username?: string;
   slogan?: string;
   createdAt?: Date;
+  activeStatus?: boolean;
+  // statusSeenBy?: Array<string>;
+  status: Array<StatusType>;
 }
 
 export interface MessageType {
@@ -95,4 +98,15 @@ export interface ChatType {
   mediaFiles?: Array<MediaFilesTypes>;
   theme?: ThemeType;
   email?: string;
+}
+
+export interface StatusType {
+  _id: string;
+  extension: string;
+  fileType: string;
+  url: string;
+  postedBy: UserType;
+  seenBy: Array<string>;
+  chatId: string;
+  createdAt: Date;
 }

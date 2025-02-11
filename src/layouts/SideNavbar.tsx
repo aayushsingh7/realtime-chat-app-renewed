@@ -56,8 +56,13 @@ const SideNavbar: FC<SideNavbarProps> = () => {
           >
             <IoChatbubbleEllipsesOutline className={styles.active} />
           </Link>
-          <IoCallOutline onClick={() => sendNotification("New Message!", "Aayush singh: hello bhai kya kar raha hai tu??", "new message", "http://localhost:5173/chat/6637dcefe84f7ef2cd4424a2")} />
-          <LuCircleDashed />
+          <IoCallOutline />
+          <Link
+            to={"/status"}
+            onClick={() => { dispatch(handleShowStarredMessages(false)); dispatch(handleShowChats(true)) }}
+          >
+            <LuCircleDashed />
+          </Link>
         </div>
 
         <div className={styles.part_two}>

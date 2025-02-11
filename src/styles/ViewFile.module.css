@@ -17,11 +17,14 @@
   align-items: flex-start;
   justify-content: flex-start;
   flex-direction: column;
+  z-index: 16;
+  background: var(--primary-background);
+}
+
+.fixed {
   position: fixed;
   top: 0%;
   left: 0%;
-  z-index: 16;
-  background: var(--primary-background);
 }
 
 .header {
