@@ -185,18 +185,21 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
           }
         </div>
         <div className={styles.box_container}>
-          <Link to={`/status?userId=${loggedInUser._id}`} className={styles.my_status}>
-            <div className={styles.pfp}>
-              <img className={styles.status_active} src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="" />
-            </div>
+          {
+            location.pathname.startsWith("/status") &&
+            <Link to={`/status?userId=${loggedInUser._id}`} className={styles.my_status}>
+              <div className={styles.pfp}>
+                <img className={styles.status_active} src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="" />
+              </div>
 
-            <div className={styles.details}>
-              <p className={styles.user_name}>
-                My Status
-                <span>updated 6h ago.</span>
-              </p>
-            </div>
-          </Link >
+              <div className={styles.details}>
+                <p className={styles.user_name}>
+                  My Status
+                  <span>updated 6h ago.</span>
+                </p>
+              </div>
+            </Link >
+          }
           {loading || chatsLoading ? (
             <Loader />
           ) : searchQuery.length > 0 ? (
