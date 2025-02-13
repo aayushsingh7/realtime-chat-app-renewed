@@ -54,8 +54,7 @@ export interface UserType {
   slogan?: string;
   createdAt?: Date;
   activeStatus?: boolean;
-  // statusSeenBy?: Array<string>;
-  status: Array<StatusType>;
+  latestStatus?: StatusType;
 }
 
 export interface MessageType {

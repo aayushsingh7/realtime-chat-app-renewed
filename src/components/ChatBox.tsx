@@ -13,7 +13,7 @@ import {
   setSelectMessagesOption,
 } from "../slice/chatSlice";
 import styles from "../styles/ChatBox.module.css";
-import { ChatType, MessageType, StatusType, UserType } from "../types/types";
+import { ChatType, MessageType, UserType } from "../types/types";
 import chatInfo from "../utils/chatInfo";
 import formatTime from "../utils/formatTime";
 import getSecondUserDetails from "../utils/getSecondUserDetails";
@@ -35,7 +35,7 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
   );
 
   const isStatusSeen = getSecondUserDetails(chat.users, loggedInUser)
-    .status?.every((status: StatusType) => status.seenBy.includes(loggedInUser._id)) || [];
+    .latestStatus?.seenBy?.includes(loggedInUser._id);
 
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const [typingUser, setTypingUser] = useState<UserType>()

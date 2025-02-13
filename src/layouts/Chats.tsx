@@ -6,7 +6,7 @@ import { MdLogout } from "react-icons/md";
 import { PiDogThin, PiShootingStarLight } from "react-icons/pi";
 import { RiMenuSearchLine } from "react-icons/ri";
 import { TbStarOff } from "react-icons/tb";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ChatBox from "../components/ChatBox";
 import Input from "../components/Input";
 import Loader from "../components/Loader";
@@ -160,29 +160,43 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
               {!showStarredMessages && <IoCreateOutline style={{ fontSize: "29px" }} onClick={() => dispatch(handleCreateGroup(true))} />}
             </div>
           </div>
-          <Input
-            onInput={(e: any) => {
-              setSearchQuery(e.target.value);
-              searchUsers(
-                setSearchResults,
-                setLoading,
-                e.target.value,
-                showStarredMessages
-              )
-            }}
-            value={searchQuery}
-            style={{
-              padding: "15px 20px",
-              background: "var(--light-background)",
-              width: "100%",
-              fontSize: "17px",
-              borderRadius: "5px",
-              borderBottom: "3px solid var(--highlight-text-color)"
-            }}
-            placeholder={showStarredMessages ? "Search starred messages" : "Search or start a new chat"}
-          />
+          {
+            !location.pathname.startsWith("/status") && <Input
+              onInput={(e: any) => {
+                setSearchQuery(e.target.value);
+                searchUsers(
+                  setSearchResults,
+                  setLoading,
+                  e.target.value,
+                  showStarredMessages
+                )
+              }}
+              value={searchQuery}
+              style={{
+                padding: "15px 20px",
+                background: "var(--light-background)",
+                width: "100%",
+                fontSize: "17px",
+                borderRadius: "5px",
+                borderBottom: "3px solid var(--highlight-text-color)"
+              }}
+              placeholder={showStarredMessages ? "Search starred messages" : "Search or start a new chat"}
+            />
+          }
         </div>
         <div className={styles.box_container}>
+          <Link to={`/status?userId=${loggedInUser._id}`} className={styles.my_status}>
+            <div className={styles.pfp}>
+              <img className={styles.status_active} src="https://images.unsplash.com/photo-1575936123452-b67c3203c357?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D" alt="" />
+            </div>
+
+            <div className={styles.details}>
+              <p className={styles.user_name}>
+                My Status
+                <span>updated 6h ago.</span>
+              </p>
+            </div>
+          </Link >
           {loading || chatsLoading ? (
             <Loader />
           ) : searchQuery.length > 0 ? (
