@@ -15,6 +15,7 @@ const Login: FC<LoginProps> = ({ }) => {
   const [email, setEmail] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [newError, setNewError] = useState<string>("")
+  const [guestLogin,setGuestLogin] = useState<boolean>(false)
 
   const login = async (e: any) => {
     e.preventDefault()
@@ -22,7 +23,7 @@ const Login: FC<LoginProps> = ({ }) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email:guestLogin ? "guest@gmail.com" : email, password:guestLogin ? "guest" : password }),
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
@@ -50,13 +51,14 @@ const Login: FC<LoginProps> = ({ }) => {
           <form className={styles.form} onSubmit={login}>
             <h2>Login🚀</h2>
             <div className={styles.input_container}>
-              <Input type="email" autoComplete="off" required style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)" }} placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <Input autoComplete="off" type="password" required style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)" }} placeholder="Enter your password" onChange={(e) => setPassword(e.target.value)} value={password} />
+              <Input type="email" autoComplete="off" required={!guestLogin} style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)" }} placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input autoComplete="off" type="password" required={!guestLogin} style={{ padding: "14px", fontSize: "0.8rem", color: "var(--primary-text-color)", marginTop: "20px", background: "var(--light-background)" }} placeholder="Enter your password" onChange={(e) => setPassword(e.target.value)} value={password} />
               <p>Forgot password</p>
             </div>
             <div className={styles.btn}>
               <label><input type="checkbox" /> save my login details</label>
-              <Button type="submit" children={<>{isLoading ? "Please wait" : "Login"} {isLoading && <div className={styles.loader}></div>}</>} style={{ background: "var(--highlight-text-color)", fontSize: "0.9rem", color: "var(--primary-text-color)", fontWeight: "500", marginTop: "15px", padding: "14px", height: "50px", borderRadius: "5px", width: "100%" }} />
+              <Button disabled={isLoading} type="submit" children={<>{isLoading ? "Please wait" : "Login"} {isLoading && <div className={styles.loader}></div>}</>} style={{ background: "var(--highlight-text-color)", fontSize: "0.9rem", color: "var(--primary-text-color)", fontWeight: "500", marginTop: "15px", padding: "14px", height: "50px", borderRadius: "5px", width: "100%" }} />
+              <Button disabled={isLoading} onClick={()=> setGuestLogin(true)} type="submit" children={<>{isLoading ? "Please wait" : "Continue as Guest"} {isLoading && <div className={styles.loader}></div>}</>} style={{ background: "#333", fontSize: "0.9rem", color: "var(--primary-text-color)", fontWeight: "500", marginTop: "15px", padding: "14px", height: "50px", borderRadius: "5px", width: "100%" }} />
             </div>
             {newError && <p className={styles.error_message}>{newError}</p>}
           </form>
