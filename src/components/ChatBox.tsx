@@ -102,7 +102,6 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
     }
   }
 
-  console.log(location.pathname)
   return (
     <Link
       className={styles.container}
@@ -156,7 +155,7 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
                 ) : latestMessage?.document ? (
                   <span style={{ display: "flex", alignItems: "center" }}>
                     <IoDocumentText style={{ marginRight: "5px" }} />{" "}
-                    Video
+                    {latestMessage?.fileName || "Attachment"}
                   </span>
                 ) : (
                   latestMessage?.message

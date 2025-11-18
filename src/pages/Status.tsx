@@ -24,7 +24,6 @@ const Status: FC<StatusProps> = ({ socket }) => {
             let data = await userStatus.json()
             setStatus(data)
         } catch (err: any) {
-            console.log(err)
         }
     }
 

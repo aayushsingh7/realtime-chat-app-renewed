@@ -58,7 +58,7 @@ const Verify: FC<VerifyProps> = () => {
         <PiWechatLogoFill />
         {showMessage &&
           <div className="verifying-message flex">
-            <p>Free hosted servers may take unnecessary time to respond, reloading page may help</p>
+            <p>Free hosted servers may take unnecessary time to respond, Please Wait...</p>
             <Button children="Reload page" style={{ fontSize: "0.8rem", fontWeight: "500", padding: "10px 25px", background: "var(--highlight-text-color)", color: "var(--primary-dark-background)", marginTop: "16px", borderRadius: "6px" }} onClick={() => location.reload()} />
           </div>}
       </div>

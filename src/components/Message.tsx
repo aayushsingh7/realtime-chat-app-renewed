@@ -144,7 +144,6 @@ const Message: FC<MessageProps> = ({
       >
 
 
-
         <div
           className={`${styles.content_container}`}
           style={{
@@ -152,12 +151,13 @@ const Message: FC<MessageProps> = ({
               data.msgType.includes("image") || data.msgType.includes("video")
                 ? "8px 8px 0px 8px"
                 : data.document
-                  ? "0px 10px 0px 10px"
-                  : "10px 10px 0px 10px",
-            marginTop: isNewUserMessage(selectedChat, data) ? "2px" : "7px"
+                  ? "10px 10px 0px 10px"
+                  : "10px 10px 2px 10px",
+            marginTop: isNewUserMessage(selectedChat, data) ? "4px" : "7px"
           }}
           onClick={navigateUser}
         >
+          {(!isNewUserMessage(selectedChat, data) && data.sender._id !== loggedInUser._id) && <span style={{fontSize:"14px",fontWeight:"600",color:"var(--random-light-color-one)",marginBottom:"3px"}}>{data.sender.name}</span>}
           {data.isReply ? (
             <div className={styles.reply} style={{ cursor: "pointer" }}>
               <div

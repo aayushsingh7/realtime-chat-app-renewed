@@ -21,7 +21,6 @@ const MediaAndFiles: FC<MediaAndFilesProps> = ({
 }) => {
 
   const dispatch = useAppDispatch()
-  console.log(data)
   return (
     <div
       className={styles.part_two}
