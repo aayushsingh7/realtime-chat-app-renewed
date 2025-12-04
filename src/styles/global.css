@@ -27,6 +27,26 @@ a:active {
   font-size: 21px;
 }
 
+
+/* :root {
+  --primary-bg: #161717;
+  --secondary-bg: #1d1f1f;
+
+  --primary-highlight-bg: #21c063;
+  --secondary-highlight-bg: #103529;
+
+  --incoming-bg: #242626;
+  --outgoing-bg: #144d37;
+
+  --message-seen: #53bdeb;
+
+  --primary-color: #fafafa;
+  --secondary-color: #ffffff99;
+} */
+
+
+
+
 .default {
   --lighter-background: #4b4b4b;
   --light-background: #303030;

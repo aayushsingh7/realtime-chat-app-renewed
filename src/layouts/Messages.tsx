@@ -8,7 +8,12 @@ import { useCustomSelector } from "../hooks/useCustomSelector";
 import ChatNavbar from "../layouts/ChatNavbar";
 import MessageInput from "../layouts/MessageInput";
 import Profile from "../layouts/Profile";
-import { fetchMessages, handleFetchChat, handleIsMoreMessages, setMoreMessages } from "../slice/chatSlice";
+import {
+  fetchMessages,
+  handleFetchChat,
+  handleIsMoreMessages,
+  setMoreMessages,
+} from "../slice/chatSlice";
 import { ChatType, MessageType, UserType } from "../types/types";
 import chatInfo from "../utils/chatInfo";
 import messageSeenFunc from "../utils/messageSeenFunc";
@@ -23,11 +28,11 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
   const offset = useRef<number>(25);
   const loadingRef = useRef(null);
   const [typing, setTyping] = useState(false);
-  const [typingUser, setTypingUser] = useState<UserType>()
+  const [typingUser, setTypingUser] = useState<UserType>();
   const [isTyping, setIsTyping] = useState(false);
-  const [isInView, setIsInView] = useState<boolean>(false)
-  const loadingMoreMessages = useRef<boolean>(false)
-  const lastMessageRef = useRef(null)
+  const [isInView, setIsInView] = useState<boolean>(false);
+  const loadingMoreMessages = useRef<boolean>(false);
+  const lastMessageRef = useRef(null);
   const [selectedMessages, setSelectedMessages] = useState<MessageType[]>([]);
 
   const {
@@ -37,13 +42,15 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
     showMessageOptions,
     isMoreMessages,
     fetchChat,
+    messages,
   }: {
     selectedChat: ChatType;
     messagesLoading: boolean;
     selectMessagesOption: boolean;
     showMessageOptions: boolean;
     isMoreMessages: boolean;
-    fetchChat: boolean,
+    fetchChat: boolean;
+    messages: MessageType[];
   } = useCustomSelector((state) => state.chats);
 
   const { loggedInUser }: { loggedInUser: UserType } = useCustomSelector(
@@ -57,14 +64,13 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
   useEffect(() => {
     if (id === "new-chat") return;
     if (!fetchChat) {
-      dispatch(handleFetchChat(true))
-      return
+      dispatch(handleFetchChat(true));
+      return;
     }
 
     //@ts-ignore
     dispatch(fetchMessages(id));
   }, [id]);
-
 
   useEffect(() => {
     if (isInView || !messageRef.current) return;
@@ -74,23 +80,28 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
       block: "end",
       inline: "nearest",
     });
-  }, [selectedChat.messages && selectedChat.messages.length]);
+  }, [messages && messages.length]);
 
   useEffect(() => {
-    if (selectedChat._id && selectedChat.messages.length > 0) {
-      const unSeenMessagesID = selectedChat.messages
-        .filter(message => !message.seenBy.some(user => user._id === loggedInUser._id))
-        .map(message => message._id);
+    if (selectedChat._id && messages.length > 0) {
+      const unSeenMessagesID = messages
+        .filter(
+          (message) =>
+            !message.seenBy.some((user) => user._id === loggedInUser._id)
+        )
+        .map((message) => message._id);
 
       if (unSeenMessagesID.length > 0) {
-        socket.emit("message seen", unSeenMessagesID, selectedChat, loggedInUser);
+        socket.emit(
+          "message seen",
+          unSeenMessagesID,
+          selectedChat,
+          loggedInUser
+        );
         messageSeenFunc(unSeenMessagesID);
       }
     }
   }, [selectedChat, loggedInUser, socket, messageSeenFunc]);
-
-
-
 
   useEffect(() => {
     //@ts-ignore
@@ -105,7 +116,6 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
     message: MessageType,
     isMessageSelected: boolean
   ) => {
-
     if (isMessageSelected) {
       setSelectedMessages((oldMsg) => {
         return oldMsg.filter((msg: MessageType) => msg._id !== message._id);
@@ -118,7 +128,6 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
   };
 
   useEffect(() => {
-
     if (!selectMessagesOption && !showMessageOptions) {
       setSelectedMessages([]);
     }
@@ -126,18 +135,16 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
 
   useEffect(() => {
     socket.on("typing", (typingUser: UserType, chat: ChatType) => {
-
       if (chat && chat._id === selectedChat._id) {
-        setTypingUser(typingUser)
+        setTypingUser(typingUser);
         setIsTyping(true);
       }
     });
     //@ts-ignore
     socket.on("typing stopped", (typingUser: UserType, chat: ChatType) => {
-
       if (chat && chat._id === selectedChat._id) {
         //@ts-ignore
-        setTypingUser({})
+        setTypingUser({});
         setIsTyping(false);
       }
     });
@@ -148,67 +155,80 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
     };
   }, [selectedChat]);
 
+  const isUserBlockedByLoggedInUser = useMemo(
+    () =>
+      selectedChat._id &&
+      loggedInUser.blockedUsers.includes(
+        chatInfo(selectedChat, loggedInUser)._id
+      ),
+    [loggedInUser.blockedUsers]
+  );
 
-  const isUserBlockedByLoggedInUser = useMemo(() => selectedChat._id && selectedChat.users?.find((user: UserType) => user._id === loggedInUser._id)?.blockedUsers?.includes(chatInfo(selectedChat, loggedInUser)._id), [selectedChat.users])
-
-  const isLoggedInUserBlocked = useMemo(() => selectedChat._id && selectedChat.users?.find((user: UserType) => user._id === chatInfo(selectedChat, loggedInUser)._id)?.blockedUsers?.includes(loggedInUser._id), [selectedChat.users])
-
+  const isLoggedInUserBlocked = useMemo(
+    () => selectedChat.isGroupChat == false && selectedChat.isBlocked,
+    [selectedChat.isBlocked]
+  );
 
   useEffect(() => {
-    if (!loadingRef.current || loadingMoreMessages.current) return
+    if (!loadingRef.current || loadingMoreMessages.current) return;
     const options = {
       root: null,
-      rootMargin: '0px',
+      rootMargin: "0px",
       threshold: 1,
     };
     const observer = new IntersectionObserver(handleIntersection, options);
     observer.observe(loadingRef.current);
   }, [selectedChat]);
 
-
-
   const handleIntersection = (entries: any) => {
     entries.forEach((entry: any) => {
       if (entry.isIntersecting) {
-        if (loadingMoreMessages.current) return
-        loadMoreMessages()
-        setIsInView(true)
+        if (loadingMoreMessages.current) return;
+        loadMoreMessages();
+        setIsInView(true);
       } else {
-        setIsInView(false)
+        setIsInView(false);
       }
     });
   };
 
   const loadMoreMessages = async () => {
-    loadingMoreMessages.current = true
-    const lastMessageId = selectedChat.messages[0]._id
+    loadingMoreMessages.current = true;
+    const lastMessageId = messages[0]._id;
     try {
-      const chatId = id
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/more-messages?offset=${offset.current}&&chatId=${chatId}`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" }
-      })
-      const data = await response.json()
-      dispatch(handleIsMoreMessages(data.isMore))
-      loadingMoreMessages.current = false
+      const chatId = id;
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/more-messages?offset=${
+          offset.current
+        }&&chatId=${chatId}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      const data = await response.json();
+      dispatch(handleIsMoreMessages(data.isMore));
+      loadingMoreMessages.current = false;
       if (data.messages.length == 0) return;
       //@ts-ignore
-      lastMessageRef.current = document.getElementById(lastMessageId)
-      dispatch(setMoreMessages({ chatId: chatId, messages: data.messages }))
+      lastMessageRef.current = document.getElementById(lastMessageId);
+      dispatch(setMoreMessages({ chatId: chatId, messages: data.messages }));
       offset.current = offset.current + 25;
     } catch (err) {
-      dispatch(setIsError(true))
+      dispatch(setIsError(true));
     }
-  }
+  };
 
   useEffect(() => {
     if (!lastMessageRef.current) return;
     //@ts-ignore
-    lastMessageRef.current.scrollIntoView({ behavior: "instant", block: "start", inline: "center" })
-  }, [offset.current])
-
-
+    lastMessageRef.current.scrollIntoView({
+      behavior: "instant",
+      block: "start",
+      inline: "center",
+    });
+  }, [offset.current]);
 
   return (
     <>
@@ -224,12 +244,20 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
       >
         {selectedChat._id ? (
           //@ts-ignore
-          <ChatNavbar typingUser={typingUser} selectedMessages={selectedMessages} socket={socket} isTyping={isTyping} />
+          <ChatNavbar
+            typingUser={typingUser}
+            selectedMessages={selectedMessages}
+            socket={socket}
+            isTyping={isTyping}
+          />
         ) : null}
         <div className="messages">
           {!messagesLoading && isMoreMessages && (
-            <div className="flex" style={{ padding: "20px", marginBottom: "20px" }} ref={loadingRef}>
-
+            <div
+              className="flex"
+              style={{ padding: "20px", marginBottom: "20px" }}
+              ref={loadingRef}
+            >
               <div className="loader" ref={loadingRef}></div>
             </div>
           )}
@@ -240,8 +268,8 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
             >
               <div className="loader"></div>
             </div>
-          ) : selectedChat?.messages.length > 0 ? (
-            selectedChat?.messages?.map((message) => (
+          ) : messages.length > 0 ? (
+            messages?.map((message) => (
               <Message
                 selectMessagesOption={selectMessagesOption}
                 key={message._id}
@@ -250,27 +278,32 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
                 selectedMessages={selectedMessages}
               />
             ))
-          ) : <div className="beginners-tag flex"><p>Prioritizing your safety: Remember to be cautious when chatting with unfamiliar faces</p></div>}
+          ) : (
+            <div className="beginners-tag flex">
+              <p>
+                Prioritizing your safety: Remember to be cautious when chatting
+                with unfamiliar faces
+              </p>
+            </div>
+          )}
 
-
-
-          <span className="seen_indicator" ref={messageRef}>
-
-          </span>
+          <span className="seen_indicator" ref={messageRef}></span>
         </div>
+
+
         {selectedChat._id ? (
           isUserBlockedByLoggedInUser ?
             <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children={`You have blocked ${chatInfo(selectedChat, loggedInUser).name}, unblock to continue chatting.`} /> :
             isLoggedInUserBlocked ?
               <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children="You can no longer be able to send messages in this chat" />
-              : selectedChat.removedUsers?.map((user: any) => user._id).includes(loggedInUser._id) ? <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children="You can't sent messages to this group because you're no longer a member." /> :
+              : selectedChat.isRemoved.status ? <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children="You can't sent messages to this group because you're no longer a member." /> :
                 <MessageInput
                   socket={socket}
                   setTyping={setTyping}
                   typing={typing}
                   isTyping={isTyping}
                 />
-        ) : null}
+        ) : null} 
       </div>
       {showProfile && <Profile socket={socket} />}
     </>

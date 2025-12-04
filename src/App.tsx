@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { useAppDispatch } from "./hooks/useAppDispatch";
 import { useCustomSelector } from "./hooks/useCustomSelector";
@@ -21,7 +21,7 @@ import {
   addChat,
   addNewMessage,
   addUserInGroup,
-  blockUser,
+  blockCurrChat,
   changeTheme,
   deleteForEveryone,
   leaveGroup,
@@ -31,7 +31,6 @@ import {
   removeFromAdmin,
   removeReactionFromMessage,
   removeUserFromGroup,
-  unBlockUser,
   updateChats,
 } from "./slice/chatSlice";
 import {
@@ -48,6 +47,7 @@ import { ChatType, MessageType, Notification_Settings, UserType } from "./types/
 import sendNotification from "./utils/sendNotification";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Status from "./pages/Status";
+import { blockUser, unBlockUser } from "./slice/userSlice";
 
 interface AppProps { }
 
@@ -174,7 +174,7 @@ const App: FC<AppProps> = () => {
       if (chat && chat._id === selectedChat._id) {
         dispatch(promoteAdmin({ userId: promotedUserId }));
       }
-    };
+    };      
 
     const removeFromAdminFunc = (
       removerUserId: string,
@@ -217,8 +217,12 @@ const App: FC<AppProps> = () => {
       }
     };
 
-    const blockUserFunc = (userId: string, blockedUserId: string) => {
-      dispatch(blockUser({ userId, blockedUserId }))
+    const blockUserFunc = (userId: string, blockedUserId: string, chat:ChatType ) => {
+        if(selectedChat._id == chat._id && blockedUserId == loggedInUser._id) {
+          dispatch(blockCurrChat(true))
+        }else{
+          dispatch(blockUser({ userId, blockedUserId }))
+        }
     }
 
     const unBlockUserFunc = (userId: string, blockedUserId: string) => {
@@ -257,12 +261,14 @@ const App: FC<AppProps> = () => {
       socketRef.current.off("user blocked", blockUserFunc)
       socketRef.current.off("user unBlocked", unBlockUserFunc)
     };
-  }, [dispatch, selectedChat?._id, socketRef.current, selectedChat?.messages]);
+  }, [dispatch, selectedChat?._id, socketRef.current]);
 
   const { verify, showUploadOptions, showPreview, showProfile, showSettings, isError, askPermission, showLoading, viewFile } =
     useCustomSelector((state) => state.utilitySlices);
-
+  
+  const navigate = useNavigate();
   useEffect(() => {
+    navigate("/")
     dispatch(setIsError(false))
   }, [])
 
@@ -293,7 +299,10 @@ const App: FC<AppProps> = () => {
   return (
     <div className="app_container default">
       {showLoading && <LoadingTask />}
-      {viewFile && <ViewFile position="fixed" />}
+      {viewFile && 
+      //@ts-ignore
+      <ViewFile position="fixed" />
+      }
       {verify && <Verify />}
       {isError && <Error />}
       {askPermission &&

@@ -11,6 +11,7 @@ import {
 const initialState = {
   chats: [chat],
   selectedChat: chat,
+  messages: [], // This is now the main storage for the active chat's messages
   messagesLoading: true,
   chatsLoading: true,
   viewMessage: message,
@@ -42,7 +43,9 @@ export const fetchMessages = createAsyncThunk(
   "chatSlice/fetchMessages",
   async (chatId: string) => {
     let response = await fetch(
-      `${import.meta.env.VITE_API_URL}/getChat?chatId=${chatId}`,
+      `${
+        import.meta.env.VITE_API_URL
+      }/more-messages?chatId=${chatId}&offset=${0}`,
       {
         method: "GET",
         credentials: "include",
@@ -80,12 +83,10 @@ const chatSlice = createSlice({
       state.chats = action.payload;
     },
     setSelectedChat(state, action) {
-      state.selectedChat = action.payload._id
-        ? {
-            ...action.payload,
-            messages: action.payload.messages,
-          }
-        : {};
+      // When selecting a chat, we set the details but clear messages
+      // until fetchMessages populates the separate messages array.
+      state.selectedChat = action.payload._id ? action.payload : {};
+      state.messages = [];
     },
     handleMessagesLoading(state, action) {
       state.messagesLoading = action.payload;
@@ -123,7 +124,7 @@ const chatSlice = createSlice({
             removedUsers: chat.removedUsers,
             users: chat.users,
             _id: chat._id,
-            messages: chat.messages,
+            // messages: chat.messages, // REMOVED: Chat model no longer holds messages
             image: chat.image,
             name: chat.name,
             description: chat.description,
@@ -166,24 +167,16 @@ const chatSlice = createSlice({
       state.createGroup = action.payload;
     },
     sendingMessage(state, action) {
-      state.selectedChat = {
-        ...state.selectedChat,
-        messages: [...state.selectedChat.messages, action.payload],
-      };
+      // NEW: Update state.messages directly
+      state.messages = [...state.messages, action.payload];
+
       //@ts-ignore
       state.chats = state.chats
         .map((chat: ChatType) => {
           if (chat._id === state.selectedChat._id) {
             return {
               ...chat,
-              messages: [
-                ...chat.messages,
-                {
-                  _id: action.payload._id,
-                  seenBy: action.payload.seenBy,
-                  status: "sending",
-                },
-              ],
+              // REMOVED: messages array update inside chat
               latestMessage: action.payload,
               updatedAt: new Date().toISOString(),
             };
@@ -199,35 +192,28 @@ const chatSlice = createSlice({
     addNewMessage(state, action) {
       const { dummyMessageId, newMessage } = action.payload;
 
-      state.selectedChat = dummyMessageId
-        ? {
-            ...state.selectedChat,
-            latestMessage: newMessage,
-            messages: state.selectedChat.messages.map(
-              (message: MessageType) => {
-                if (message._id === dummyMessageId) {
-                  return { ...newMessage, message: message.message };
-                } else {
-                  return message;
-                }
-              }
-            ),
+      // NEW: Update state.messages instead of selectedChat.messages
+      if (dummyMessageId) {
+        state.messages = state.messages.map((message: MessageType) => {
+          if (message._id === dummyMessageId) {
+            return { ...newMessage, message: message.message };
+          } else {
+            return message;
           }
-        : {
-            ...state.selectedChat,
-            messages: [...state.selectedChat.messages, newMessage],
-            latestMessage: newMessage,
-          };
+        });
+        state.selectedChat.latestMessage = newMessage;
+      } else {
+        state.messages = [...state.messages, newMessage];
+        state.selectedChat.latestMessage = newMessage;
+      }
+
       //@ts-ignore
       state.chats = state.chats
         .map((chat: ChatType) => {
           if (chat._id === state.selectedChat._id) {
             return {
               ...chat,
-              messages: [
-                ...chat.messages,
-                { _id: newMessage._id, seenBy: newMessage.seenBy },
-              ],
+              // REMOVED: messages array update inside chat
               latestMessage: newMessage,
               updatedAt: new Date().toISOString(),
             };
@@ -248,10 +234,7 @@ const chatSlice = createSlice({
           if (chat._id === chatId) {
             return {
               ...chat,
-              messages: [
-                ...chat.messages,
-                { _id: newMessage._id, seenBy: newMessage.seenBy },
-              ],
+              // REMOVED: messages array update inside chat
               latestMessage: newMessage,
               updatedAt: new Date().toISOString(),
             };
@@ -273,81 +256,75 @@ const chatSlice = createSlice({
     reactOnMessage(state, action) {
       const { messageId, reaction, user } = action.payload;
 
-      state.selectedChat = {
-        ...state.selectedChat,
-        messages: state.selectedChat.messages.map((message: MessageType) => {
-          if (message._id === messageId) {
-            const existingReaction = message.reactEmoji?.find(
-              (react) => react.user._id === user._id
-            );
+      // NEW: Update state.messages
+      state.messages = state.messages.map((message: MessageType) => {
+        if (message._id === messageId) {
+          const existingReaction = message.reactEmoji?.find(
+            (react) => react.user._id === user._id
+          );
 
-            if (existingReaction) {
-              return {
-                ...message,
-                reactEmoji: message.reactEmoji?.map((r) =>
-                  r.user._id === user._id ? { ...r, emoji: reaction } : r
-                ),
-              };
-            } else {
-              return {
-                ...message,
-                reactEmoji: [
-                  ...(message.reactEmoji || []),
-                  { user: user, emoji: reaction },
-                ],
-              };
-            }
+          if (existingReaction) {
+            return {
+              ...message,
+              reactEmoji: message.reactEmoji?.map((r) =>
+                r.user._id === user._id ? { ...r, emoji: reaction } : r
+              ),
+            };
           } else {
-            return message;
+            return {
+              ...message,
+              reactEmoji: [
+                ...(message.reactEmoji || []),
+                { user: user, emoji: reaction },
+              ],
+            };
           }
-        }),
-      };
+        } else {
+          return message;
+        }
+      });
     },
     removeReactionFromMessage(state, action) {
       const { messageId, userId } = action.payload;
 
-      state.selectedChat = {
-        ...state.selectedChat,
-        //@ts-ignore
-        messages: state.selectedChat.messages.map((message: MessageType) => {
-          if (message._id === messageId) {
-            const existingReaction = message.reactEmoji?.find(
-              (react: ReactMessageType) => react.user._id === userId
-            );
+      // NEW: Update state.messages
+      //@ts-ignore
+      state.messages = state.messages.map((message: MessageType) => {
+        if (message._id === messageId) {
+          const existingReaction = message.reactEmoji?.find(
+            (react: ReactMessageType) => react.user._id === userId
+          );
 
-            if (existingReaction) {
-              return {
-                ...message,
-                //@ts-ignore
-                reactEmoji: message.reactEmoji.filter(
-                  (react: ReactMessageType) => react.user._id !== userId
-                ),
-              };
-            }
-          } else {
-            return message;
+          if (existingReaction) {
+            return {
+              ...message,
+              //@ts-ignore
+              reactEmoji: message.reactEmoji.filter(
+                (react: ReactMessageType) => react.user._id !== userId
+              ),
+            };
           }
-        }),
-      };
+        }
+        return message;
+      });
     },
     selectMessage(state, action) {
       state.selectedMessage = action.payload;
     },
     deleteForMe(state, action) {
       const { messageIds }: { messageIds: string[] } = action.payload;
-      state.selectedChat.messages = state.selectedChat.messages.filter(
-        (message: MessageType) => {
-          return !messageIds.includes(message._id);
-        }
-      );
+
+      // NEW: Filter state.messages
+      state.messages = state.messages.filter((message: MessageType) => {
+        return !messageIds.includes(message._id);
+      });
+
+      // Update latest message in chats list
       state.chats = state.chats.map((chat: ChatType) => {
         if (chat._id === state.selectedChat._id) {
           return {
             ...chat,
-            latestMessage:
-              state.selectedChat.messages[
-                state.selectedChat.messages.length - 1
-              ],
+            latestMessage: state.messages[state.messages.length - 1], // Check state.messages
           };
         } else {
           return chat;
@@ -358,19 +335,17 @@ const chatSlice = createSlice({
     },
     deleteForEveryone(state, action) {
       const { messageIds }: { messageIds: string[] } = action.payload;
-      state.selectedChat.messages = state.selectedChat.messages.filter(
-        (message: MessageType) => {
-          return !messageIds.includes(message._id);
-        }
-      );
+
+      // NEW: Filter state.messages
+      state.messages = state.messages.filter((message: MessageType) => {
+        return !messageIds.includes(message._id);
+      });
+
       state.chats = state.chats.map((chat: ChatType) => {
         if (chat._id === state.selectedChat._id) {
           return {
             ...chat,
-            latestMessage:
-              state.selectedChat.messages[
-                state.selectedChat.messages.length - 1
-              ],
+            latestMessage: state.messages[state.messages.length - 1],
           };
         } else {
           return chat;
@@ -382,68 +357,45 @@ const chatSlice = createSlice({
     handleIsReplying(state, action) {
       state.isReplying = action.payload;
     },
-    starMessages(state, action) {
-      const {
-        messageIds,
-        userId,
-      }: { messageIds: string[]; chatId: string; userId: string } =
-        action.payload;
+    // starMessages(state, action) {
+    //   const {
+    //     messageIds,
+    //     userId,
+    //   }: { messageIds: string[]; chatId: string; userId: string } =
+    //     action.payload;
+      
+       
+    // },
+    // removeStarredMessage(state, action) {
+    //   const {
+    //     messageIds,
+    //     userId,
+    //   }: { messageIds: string[]; chatId: string; userId: string } =
+    //     action.payload;
 
-      state.selectedChat = {
-        ...state.selectedChat,
-        messages: state.selectedChat.messages.map((message: MessageType) => {
-          if (messageIds.includes(message._id)) {
-            // Correcting the way to update the starredBy array
-            return {
-              ...message,
-              starredBy: [
-                ...message.starredBy,
-                {
-                  chatId: state.selectedChat._id,
-                  userId: userId,
-                },
-              ],
-            };
-          } else {
-            return message;
-          }
-        }),
-      };
-    },
-    removeStarredMessage(state, action) {
-      const {
-        messageIds,
-        userId,
-      }: { messageIds: string[]; chatId: string; userId: string } =
-        action.payload;
-
-      state.selectedChat = {
-        ...state.selectedChat,
-        messages: state.selectedChat.messages.map((message: MessageType) => {
-          if (messageIds.includes(message._id)) {
-            return {
-              ...message,
-              starredBy: message.starredBy.filter(
-                (data: any) => data.userId !== userId
-              ),
-            };
-          } else {
-            return message;
-          }
-        }),
-      };
-      state.starredMessages = state.starredMessages.filter(
-        (message: MessageType) => !messageIds.includes(message._id)
-      );
-    },
+    //   // NEW: Update state.messages
+    //   state.messages = state.messages.map((message: MessageType) => {
+    //     if (messageIds.includes(message._id)) {
+    //       return {
+    //         ...message,
+    //         starredBy: message.starredBy.filter(
+    //           (data: any) => data.userId !== userId
+    //         ),
+    //       };
+    //     } else {
+    //       return message;
+    //     }
+    //   });
+    //   state.starredMessages = state.starredMessages.filter(
+    //     (message: MessageType) => !messageIds.includes(message._id)
+    //   );
+    // },
     setMoreMessages(state, action) {
       const { chatId, messages }: { chatId: string; messages: MessageType[] } =
         action.payload;
       if (state.selectedChat._id === chatId) {
-        state.selectedChat = {
-          ...state.selectedChat,
-          messages: [...messages.reverse(), ...state.selectedChat.messages],
-        };
+        // NEW: Update state.messages
+        state.messages = [...messages.reverse(), ...state.messages];
       }
     },
     addUserInGroup(state, action) {
@@ -489,6 +441,7 @@ const chatSlice = createSlice({
     },
     messageSeen(state, action) {
       const { messageIds, chatId, user } = action.payload;
+
       state.selectedChat = {
         ...state.selectedChat,
         latestMessage: {
@@ -499,21 +452,23 @@ const chatSlice = createSlice({
             { _id: user._id, username: user.username },
           ],
         },
-        //@ts-ignore
-        messages: state.selectedChat.messages.map((message: MessageType) => {
-          if (messageIds.includes(message._id)) {
-            return {
-              ...message,
-              seenBy: [
-                ...message.seenBy,
-                { _id: user._id, username: user.username },
-              ],
-            };
-          } else {
-            return message;
-          }
-        }),
       };
+
+      // NEW: Update state.messages
+      //@ts-ignore
+      state.messages = state.messages.map((message: MessageType) => {
+        if (messageIds.includes(message._id)) {
+          return {
+            ...message,
+            seenBy: [
+              ...message.seenBy,
+              { _id: user._id, username: user.username },
+            ],
+          };
+        } else {
+          return message;
+        }
+      });
 
       //@ts-ignore
       state.chats = state.chats.map((chat: ChatType) => {
@@ -527,19 +482,7 @@ const chatSlice = createSlice({
                 { _id: user._id, username: user.username },
               ],
             },
-            messages: chat.messages.map((message: MessageType) => {
-              if (messageIds.includes(message._id)) {
-                return {
-                  ...message,
-                  seenBy: [
-                    ...message.seenBy,
-                    { _id: user._id, username: user.username },
-                  ],
-                };
-              } else {
-                return message;
-              }
-            }),
+            // REMOVED: messages array update inside chat
           };
         } else {
           return chat;
@@ -548,48 +491,6 @@ const chatSlice = createSlice({
     },
     handleShowChats(state, action) {
       state.showChats = action.payload;
-    },
-    blockUser(state, action) {
-      const { userId, blockedUserId } = action.payload;
-      return {
-        ...state,
-        selectedChat: {
-          ...state.selectedChat,
-          users: state.selectedChat.users.map((user) => {
-            if (user._id === userId) {
-              return {
-                ...user,
-
-                blockedUsers: user.blockedUsers
-                  ? [...user.blockedUsers, blockedUserId]
-                  : [blockedUserId],
-              };
-            }
-            return user;
-          }),
-        },
-      };
-    },
-    unBlockUser(state, action) {
-      const { userId, blockedUserId } = action.payload;
-      return {
-        ...state,
-        selectedChat: {
-          ...state.selectedChat,
-          users: state.selectedChat.users.map((user) => {
-            if (user._id === userId) {
-              return {
-                ...user,
-                //@ts-ignore
-                blockedUsers: user.blockedUsers.filter(
-                  (u: string) => u !== blockedUserId
-                ),
-              };
-            }
-            return user;
-          }),
-        },
-      };
     },
     leaveGroup(state, action) {
       const { userId } = action.payload;
@@ -614,6 +515,11 @@ const chatSlice = createSlice({
     handleFetchChat(state, action) {
       state.fetchChat = action.payload;
     },
+      blockCurrChat(state, action) {
+        console.log("TRIGGERED")
+      //@ts-expect-error
+      state.selectedChat.isBlocked = true
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchChats.pending, (state) => {
@@ -632,11 +538,16 @@ const chatSlice = createSlice({
     });
     builder.addCase(fetchMessages.fulfilled, (state, action) => {
       state.messagesLoading = false;
-      const { chat, isMore } = action.payload;
-      state.selectedChat = {
-        ...chat,
-        messages: chat.messages.reverse(),
-      };
+      const { chat, messages, isMore } = action.payload;
+
+      // Update selectedChat metadata if provided (but WITHOUT messages field)
+      if (chat) {
+        state.selectedChat = { ...chat };
+      }
+
+      // NEW: Populate state.messages directly
+      // Assuming payload now returns 'messages' separate from 'chat'
+      state.messages = messages ? messages.reverse() : [];
       state.isMoreMessages = isMore;
     });
     builder.addCase(fetchMessages.rejected, (state) => {
@@ -675,7 +586,6 @@ export const {
   deleteForEveryone,
   deleteForMe,
   handleIsReplying,
-  starMessages,
   setMoreMessages,
   updateChats,
   addUserInGroup,
@@ -685,12 +595,10 @@ export const {
   handleShowStarredMessages,
   setStarredMessages,
   messageSeen,
-  removeStarredMessage,
   removeReactionFromMessage,
   handleShowChats,
-  blockUser,
-  unBlockUser,
   leaveGroup,
+  blockCurrChat,
   handleIsMoreMessages,
   handleIsMoreChats,
   setMoreLoadedChats,

@@ -77,10 +77,10 @@ const MessageBox: FC<MessageBoxProps> = ({ message, selectMessage, selectMessage
         onClick={() => { handleClick(); setMessageSelected(!messageSelected) }}
       >
         <div className={styles.chat_details}>
-          <p className={styles.user_name}>{message.chat && chatInfo(message?.chat, loggedInUser).name}
-            <span >
-              {time}
-            </span></p>
+            <img style={{marginRight:"15px",width:"45px", height:"45px", borderRadius:"50%"}} src={chatInfo(message?.chat, loggedInUser).image}/>
+          <div>
+            <p className={styles.user_name}>{message.chat && chatInfo(message?.chat, loggedInUser).name}
+          </p>
           <p className={styles.latest_message}>
             {
               //@ts-expect-error messgae.sender contains only id and not the whole sender data
@@ -106,8 +106,9 @@ const MessageBox: FC<MessageBoxProps> = ({ message, selectMessage, selectMessage
 
 
           </p>
+          </div>
         </div>
-        {
+        { 
           (message.msgType !== "alert" && message.msgType !== "text") &&
           <div className={styles.message_container}>
             {message.document ?

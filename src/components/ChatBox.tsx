@@ -34,9 +34,7 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
     (state) => state.chats
   );
 
-  const isStatusSeen = getSecondUserDetails(chat.users, loggedInUser)
-    .latestStatus?.seenBy?.includes(loggedInUser._id);
-
+  const isStatusSeen = true
   const [isTyping, setIsTyping] = useState<boolean>(false)
   const [typingUser, setTypingUser] = useState<UserType>()
 
@@ -51,7 +49,7 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
     }
   };
 
-  const unReadMessage: number = useMemo(
+  const unReadMessage: number = 1 || useMemo(
     () =>
       //@ts-ignore
       chatInfo(chat, loggedInUser).messages.reduce((total, message) => {
@@ -127,13 +125,13 @@ const ChatBox: FC<ChatBoxProps> = ({ chat, socket }) => {
             <span style={{ display: "flex", alignItems: "center" }}>
               {latestMessage?.sender?._id === loggedInUser._id || chat.isGroupChat ? (
                 <span style={{ marginRight: "4px", marginTop: "0px" }}>
-                  {latestMessage?.sender?._id === loggedInUser._id ? "You:" : chat.isGroupChat && latestMessage.sender._id !== import.meta.env.VITE_MESSAGE_BOT_ID ? latestMessage?.sender.name + ":" : null}
+                  {latestMessage?.sender?._id === loggedInUser._id ? "You:" : chat.isGroupChat && latestMessage?.sender?._id !== import.meta.env.VITE_MESSAGE_BOT_ID ? latestMessage?.sender?.name + ":" : null}
                 </span>
               ) : null}
-              {chat.messages[chat.messages.length - 1]?.status === "sending" ? (
+              {/* {chat.messages[chat.messages.length - 1]?.status === "sending" ? (
                 <AiOutlineClockCircle style={{ marginRight: "5px" }} />
               ) : chat.latestMessage.sender?._id === loggedInUser?._id ? everyoneIncluded ? <BsCheck2All style={{ color: "var(--seen-message-color)", fontSize: "19px", flexShrink: "0", marginRight: "2px" }} /> :
-                <BsCheck2All style={{ fontSize: "19px", flexShrink: "0", marginRight: "2px" }} /> : null}
+                <BsCheck2All style={{ fontSize: "19px", flexShrink: "0", marginRight: "2px" }} /> : null} */}
               <span className={styles.latest_message_ab}>
                 {latestMessage?.moderator?._id ? (
                   <>

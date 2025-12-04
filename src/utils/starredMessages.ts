@@ -1,5 +1,5 @@
 import { Dispatch } from "@reduxjs/toolkit";
-import { removeStarredMessage, starMessages } from "../slice/chatSlice";
+import { removeStarredMessages, starMessages } from "../slice/userSlice";
 
 const starredMessagesFunc = async (
   messageIds: string[],
@@ -8,25 +8,27 @@ const starredMessagesFunc = async (
   dispatch: Dispatch,
   isRemoveStarredMessage: boolean
 ) => {
+  console.log("function triggered", isRemoveStarredMessage);
+
   try {
-    isRemoveStarredMessage
-      ? dispatch(
-          removeStarredMessage({
-            messageIds: messageIds,
-            userId: userId,
-          })
-        )
-      : dispatch(
-          starMessages({
-            messageIds: messageIds,
-            userId: userId,
-          })
-        );
+    if (isRemoveStarredMessage) {
+      dispatch(
+        removeStarredMessages(messageIds) // Pass ONLY the array
+      );
+    } else {
+      dispatch(
+        starMessages(messageIds) // Pass ONLY the array
+      );
+    }
+
+    // Now this will run because the error above is gone
+    window.alert("Api call starting..."); 
+
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/${
+      `${import.meta.env.VITE_API_URL}${
         isRemoveStarredMessage
           ? "/remove-from-star-messages"
-          : "add-to-star-messages"
+          : "/add-to-star-messages"
       }`,
       {
         method: "PUT",
@@ -40,7 +42,10 @@ const starredMessagesFunc = async (
       }
     );
     const data = await response.json();
-  } catch (err) {}
+  } catch (err) {
+    // IMPORTANT: Always log the error so you aren't working in the dark!
+    console.error("Error in starredMessagesFunc:", err);
+  }
 };
 
 export default starredMessagesFunc;

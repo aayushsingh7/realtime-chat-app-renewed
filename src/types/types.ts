@@ -44,17 +44,19 @@ export interface UserType {
   name: string;
   image: string;
   email?: string;
-  password?: string;
-  blockedUsers?: Array<string>;
-  onlineStatus?: boolean;
-  lastSeen?: Date;
-  description?: string;
-  role?: string;
-  username?: string;
-  slogan?: string;
-  createdAt?: Date;
-  activeStatus?: boolean;
-  latestStatus?: StatusType;
+  blockedUsers: Array<string>;
+  onlineStatus: boolean;
+  lastSeen: Date;
+  description: string;
+  role: string;
+  username: string;
+  slogan: string;
+  createdAt: Date;
+  activeStatus: boolean;
+  latestStatus: StatusType;
+  starredMessages: Array<string>;
+  clearedChats:Map<string, Date>;
+  deletedChats: Map<string, Date>;
 }
 
 export interface MessageType {
@@ -74,7 +76,6 @@ export interface MessageType {
   status?: string;
   fileSize?: number;
   createdAt?: string;
-  starredBy: Array<StarredMessageType>;
   eventPerformed?: string;
   chat?: ChatType;
 }
@@ -85,18 +86,17 @@ export interface ChatType {
   admins: Array<UserType>;
   users: Array<UserType>;
   latestMessage: MessageType;
-  messages: Array<MessageType>;
   createdBy: UserType;
   image: string;
   name: string;
   description: string;
-  removedUsers: Array<UserType>;
+  removedUsers: any;
   createdAt: string;
   updatedAt: string;
   slogan?: string;
-  mediaFiles?: Array<MediaFilesTypes>;
   theme?: ThemeType;
   email?: string;
+  isBlocked?:boolean;
 }
 
 export interface StatusType {

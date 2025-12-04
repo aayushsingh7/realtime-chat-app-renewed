@@ -18,7 +18,6 @@ const chatInfo = (
       image: secondUser.image,
       email: secondUser?.email,
       slogan: secondUser?.slogan,
-      blockedUsers: secondUser?.blockedUsers,
       lastSeen: secondUser?.lastSeen,
       activeStatus: secondUser?.activeStatus,
     };

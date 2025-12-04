@@ -48,7 +48,7 @@ const MessageOptions: FC<MessageOptionsProps> = ({ socket }) => {
     setShowEmojis(false);
   };
 
-  const isAlreadyStarred = useMemo(() => selectedMessage.starredBy.map((u: StarredMessageType) => u.userId).includes(loggedInUser._id), [showMessageOptions])
+  const isAlreadyStarred = useMemo(() =>  loggedInUser.starredMessages.includes(selectedMessage._id), [showMessageOptions])
 
   const isAlreadyReacted = useMemo(() => selectedMessage.reactEmoji?.find((react: ReactMessageType) => react.user._id === loggedInUser._id), [showMessageOptions])
 
@@ -157,12 +157,13 @@ const MessageOptions: FC<MessageOptionsProps> = ({ socket }) => {
 
                 <Button
                   onClick={() => {
+                    console.log("clicked");
                     starredMessagesFunc(
                       [selectedMessage._id],
                       loggedInUser._id,
                       selectedChat._id,
                       dispatch,
-                      isAlreadyStarred ? true : false
+                      isAlreadyStarred
                     );
                   }}
                   style={{

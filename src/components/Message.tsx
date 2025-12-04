@@ -38,8 +38,8 @@ const Message: FC<MessageProps> = ({
   const componentRef = useRef(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const { loggedInUser }: { loggedInUser: UserType } = useCustomSelector((state) => state.user);
-  const isSender = loggedInUser._id === data.sender._id;
-  const { selectedChat }: { selectedChat: ChatType } = useCustomSelector((state) => state.chats);
+  const isSender = loggedInUser._id === data.sender?._id;
+  const { selectedChat, messages }: { selectedChat: ChatType, messages:MessageType[] } = useCustomSelector((state) => state.chats);
 
   const navigateUser = () => {
     if (selectMessagesOption) return;
@@ -64,13 +64,9 @@ const Message: FC<MessageProps> = ({
     .map((message) => message._id)
     .includes(data._id);
 
-  let everyoneIncluded: boolean = true;
-  for (const user of selectedChat.users) {
-    if (!data.seenBy.map((u: UserType) => u._id).includes(user._id)) {
-      everyoneIncluded = false;
-      break;
-    }
-  }
+  let everyoneIncluded: boolean = data.seenBy.length == selectedChat.users.length;
+
+  // console.log(loggedInUser.starredMessages)
 
   return (
     <div
@@ -126,7 +122,7 @@ const Message: FC<MessageProps> = ({
       {
         selectedChat.isGroupChat && data.sender._id !== import.meta.env.VITE_MESSAGE_BOT_ID && data.sender._id !== loggedInUser._id ?
           <div className={styles.group_user_pic}>
-            {!isNewUserMessage(selectedChat, data) && <img loading="eager" alt="user" src={data.sender.image} />}
+            {!isNewUserMessage(messages, data) && <img loading="eager" alt="user" src={data.sender.image} />}
           </div> : null
       }
 
@@ -153,11 +149,11 @@ const Message: FC<MessageProps> = ({
                 : data.document
                   ? "10px 10px 0px 10px"
                   : "10px 10px 2px 10px",
-            marginTop: isNewUserMessage(selectedChat, data) ? "4px" : "7px"
+            marginTop: isNewUserMessage(messages, data) ? "4px" : "7px"
           }}
           onClick={navigateUser}
         >
-          {(!isNewUserMessage(selectedChat, data) && data.sender._id !== loggedInUser._id) && <span style={{fontSize:"14px",fontWeight:"600",color:"var(--random-light-color-one)",marginBottom:"3px"}}>{data.sender.name}</span>}
+          {(selectedChat.isGroupChat && !isNewUserMessage(messages, data) && data.sender._id !== loggedInUser._id) && <span style={{fontSize:"14px",fontWeight:"600",color:"var(--random-light-color-one)",marginBottom:"3px"}}>{data.sender.name}</span>}
           {data.isReply ? (
             <div className={styles.reply} style={{ cursor: "pointer" }}>
               <div
@@ -274,9 +270,7 @@ const Message: FC<MessageProps> = ({
           {data.msgType !== "alert" && (
             <span className={styles.timestamp}>
               {data.createdAt && formatTime(data.createdAt)}
-              {data.starredBy
-                ?.map((d) => d.userId)
-                .includes(loggedInUser._id) ? (
+              {loggedInUser?.starredMessages?.includes(data._id) ? (
                 <AiFillStar />
               ) : null}
               {data.status === "sending" || data.status === "error" ? null : data.sender._id === loggedInUser._id ? everyoneIncluded ? <BsCheck2All style={{ color: "var(--seen-message-color)", fontSize: "16px", marginLeft: "5px" }} /> :

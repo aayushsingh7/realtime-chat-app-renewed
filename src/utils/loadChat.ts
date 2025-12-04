@@ -51,7 +51,7 @@ const loadChat = async (
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/getChat?userOne=${
         loggedInUser._id
-      }&&userTwo=${user._id}`,
+      }&userTwo=${user._id}`,
       {
         method: "GET",
         credentials: "include",

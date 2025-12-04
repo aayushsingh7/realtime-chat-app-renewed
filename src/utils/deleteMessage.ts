@@ -16,10 +16,7 @@ const deleteMessage = async (
         credentials: "include",
         body: JSON.stringify({
           messageIds,
-          prevMessageId:
-            selectedChat.messages[
-              selectedChat.messages.length - (messageIds.length + 1)
-            ]._id,
+          chatId:selectedChat._id
         }),
       }
     );

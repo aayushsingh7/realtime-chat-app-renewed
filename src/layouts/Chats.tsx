@@ -245,8 +245,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
               </div>
             )
           ) : chats.length > 0 ? (
-            chats.filter((chat) => chat.messages.length > 0)
-              .map((chat) => {
+            chats.map((chat) => {
                 return <ChatBox socket={socket} key={chat._id} chat={chat} />;
               })
           ) : (

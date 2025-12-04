@@ -41,7 +41,7 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
   const selectedChat: ChatType = useCustomSelector(
     (state) => state.chats.selectedChat
   );
-  const isUserBlocked = useMemo(() => selectedChat.users.find((u: UserType) => u._id === user._id)?.blockedUsers?.includes(chatInfo(selectedChat, user)._id), [selectedChat.users])
+  const isUserBlocked = useMemo(() => user.blockedUsers.includes(chatInfo(selectedChat, user)._id), [selectedChat.users])
   const dispatch = useAppDispatch();
 
   const themes = [
@@ -109,14 +109,13 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
     dispatch(handleLoading(true))
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/group-chat/remove-user`,
+        `${import.meta.env.VITE_API_URL}/groups/${selectedChat._id}/users/remove`,
         {
           method: "PUT",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             newUserId: method === "left" ? user._id : selectedUser._id,
-            chatId: selectedChat._id,
           }),
         }
       );
@@ -379,11 +378,11 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
             </div>
           )}
 
-          <MediaAndFiles
+          {/* <MediaAndFiles
             data={selectedChat.mediaFiles}
             elemPerRow={4}
             heading={true}
-          />
+          /> */}
           <div className={styles.part_two} style={{ marginTop: "10px" }}>
             <input type="file" ref={inputRef} onChange={uploadCustomTheme} style={{ display: "none" }} />
             <p>Change Theme</p>
@@ -413,7 +412,7 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
 
 
           <div style={{ marginTop: "20px", width: "100%" }}>
-            {selectedChat.isGroupChat ? !selectedChat.removedUsers.includes(user._id) &&
+            {selectedChat.isGroupChat ? !selectedChat?.isRemoved.status &&
               <Button onClick={() => setConfirmLeaveGroup(true)} style={{ padding: "13px", fontSize: "0.8rem", color: "var(--primary-text-color)", background: "var(--lighter-background)", width: "100%", borderRadius: "7px" }} children="Leave group" />
               :
               <Button onClick={() => blockAndUnblockUser(isUserBlocked ? "un-block" : "block")} style={{ padding: "13px", fontSize: "0.8rem", color: "var(--primary-text-color)", background: "var(--lighter-background)", width: "100%", borderRadius: "7px" }} children={isUserBlocked ? `UnBlock ${chatInfo(selectedChat, user).name}` : `Block ${chatInfo(selectedChat, user).name}`} />}

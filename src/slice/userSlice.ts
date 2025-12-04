@@ -16,9 +16,26 @@ const userSlice = createSlice({
     handleLogout(state, action) {
       state.confirmLogout = action.payload;
     },
+    starMessages(state, action) {
+      state.loggedInUser.starredMessages.push(...action.payload);
+    },
+
+    removeStarredMessages(state, action) {
+      state.loggedInUser.starredMessages =
+        state.loggedInUser.starredMessages.filter(
+          (id) => !action.payload.includes(id)
+        );
+    },
+    blockUser(state, action) {
+      state.loggedInUser.blockedUsers.push(action.payload.blockedUserId)
+    },
+    unBlockUser(state, action) {
+      state.loggedInUser.blockedUsers = state.loggedInUser.blockedUsers.filter((userId)=> userId != action.payload.blockedUserId)
+    },
   },
 });
 
-export const { setUser, handleLogout } = userSlice.actions;
+export const { setUser, handleLogout, removeStarredMessages, starMessages, blockUser,unBlockUser } =
+  userSlice.actions;
 
 export default userSlice.reducer;
