@@ -45,7 +45,7 @@ export const fetchMessages = createAsyncThunk(
     let response = await fetch(
       `${
         import.meta.env.VITE_API_URL
-      }/more-messages?chatId=${chatId}&offset=${0}`,
+      }/messages?chatId=${chatId}&offset=${0}`,
       {
         method: "GET",
         credentials: "include",

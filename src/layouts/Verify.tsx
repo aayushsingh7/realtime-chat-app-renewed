@@ -26,7 +26,7 @@ const Verify: FC<VerifyProps> = () => {
 
   const authenticateUser = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/authenticate`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
         headers: {

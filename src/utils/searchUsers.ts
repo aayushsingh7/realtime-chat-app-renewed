@@ -8,7 +8,7 @@ const searchUsers = async (
     setLoading(true);
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/${
-        showStarredMessages ? "search-starred-messages" : "searchUsers"
+        showStarredMessages ? "/starred-messages/search" : "/users/search"
       }?query=${query}`,
       {
         method: "GET",

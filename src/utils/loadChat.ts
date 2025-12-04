@@ -48,16 +48,16 @@ const loadChat = async (
     dispatch(handleShowChats(false));
     dispatch(handleMessagesLoading(true));
     dispatch(handleShowProfile(false));
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/getChat?userOne=${
-        loggedInUser._id
-      }&userTwo=${user._id}`,
-      {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/chats`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userOne: loggedInUser._id,
+        userTwo: user._id,
+        isGroupChat: false,
+      }),
+    });
     const data = await response.json();
     if (data.success) {
       socket.emit("create new chat", data.chat);

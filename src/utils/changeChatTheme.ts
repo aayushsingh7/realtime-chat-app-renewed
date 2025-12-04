@@ -7,13 +7,12 @@ const changeChatTheme = async (
 ) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/change-theme`,
+      `${import.meta.env.VITE_API_URL}/chats/${selectedChat._id}/theme`,
       {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         method: "PUT",
         body: JSON.stringify({
-          chatId: selectedChat._id,
           file: file,
           themeDetails,
         }),

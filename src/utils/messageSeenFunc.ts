@@ -1,9 +1,9 @@
 const messageSeenFunc = async (messageIds: string[]) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/message-seen`,
+      `${import.meta.env.VITE_API_URL}/messages/seen`,
       {
-        method: "PUT",
+        method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messageIds: messageIds }),

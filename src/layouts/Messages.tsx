@@ -198,9 +198,9 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
     try {
       const chatId = id;
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/more-messages?offset=${
+        `${import.meta.env.VITE_API_URL}/messages?offset=${
           offset.current
-        }&&chatId=${chatId}`,
+        }&chatId=${chatId}`,
         {
           method: "GET",
           credentials: "include",
@@ -245,6 +245,7 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
         {selectedChat._id ? (
           //@ts-ignore
           <ChatNavbar
+          //@ts-expect-error
             typingUser={typingUser}
             selectedMessages={selectedMessages}
             socket={socket}

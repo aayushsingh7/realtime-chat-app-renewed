@@ -12,7 +12,12 @@ import UserBox from "../components/UserBox";
 import { useAppDispatch } from "../hooks/useAppDispatch";
 import { useCustomSelector } from "../hooks/useCustomSelector";
 import { addNewMessage } from "../slice/chatSlice";
-import { handleLoading, handleShowAdminOptions, handleShowProfile, setIsError } from "../slice/utilitySlices";
+import {
+  handleLoading,
+  handleShowAdminOptions,
+  handleShowProfile,
+  setIsError,
+} from "../slice/utilitySlices";
 import styles from "../styles/Profile.module.css";
 import { ChatType, UserType } from "../types/types";
 import alertMessageFunc from "../utils/alertMessageFunc";
@@ -31,18 +36,26 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
   const { showAdminOptions } = useCustomSelector(
     (state) => state.utilitySlices
   );
-  const inputRef = useRef<any>(null)
+  const inputRef = useRef<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<UserType[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserType>({ _id: "", name: "", image: "" })
+  const [selectedUser, setSelectedUser] = useState<any>({
+    _id: "",
+    name: "",
+    image: "",
+  });
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [confirmLeaveGroup, setConfirmLeaveGroup] = useState<boolean>(false)
-  const navigate = useNavigate()
+  const [confirmLeaveGroup, setConfirmLeaveGroup] = useState<boolean>(false);
+  const navigate = useNavigate();
   const selectedChat: ChatType = useCustomSelector(
     (state) => state.chats.selectedChat
   );
-  const isUserBlocked = useMemo(() => user.blockedUsers.includes(chatInfo(selectedChat, user)._id), [selectedChat.users])
+  const isUserBlocked = useMemo(
+    () => user.blockedUsers.includes(chatInfo(selectedChat, user)._id),
+    [selectedChat.users]
+  );
   const dispatch = useAppDispatch();
+  const { loggedInUser } = useCustomSelector((state) => state.user);
 
   const themes = [
     {
@@ -72,17 +85,16 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
   ];
 
   const addUser = async (newUser: UserType) => {
-    dispatch(handleLoading(true))
+    dispatch(handleLoading(true));
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/group-chat/add-user`,
+        `${import.meta.env.VITE_API_URL}/groups/${selectedChat._id}/users/add`,
         {
           method: "PUT",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             newUserId: newUser._id,
-            chatId: selectedChat._id,
           }),
         }
       );
@@ -101,15 +113,17 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
     } catch (err) {
       dispatch(setIsError(true));
     }
-    dispatch(handleLoading(false))
+    dispatch(handleLoading(false));
   };
 
   const removeUser = async (method: string) => {
-    setConfirmLeaveGroup(false)
-    dispatch(handleLoading(true))
+    setConfirmLeaveGroup(false);
+    dispatch(handleLoading(true));
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/groups/${selectedChat._id}/users/remove`,
+        `${import.meta.env.VITE_API_URL}/groups/${selectedChat._id}/groups/${
+          selectedChat._id
+        }/users/remove`,
         {
           method: "PUT",
           credentials: "include",
@@ -129,21 +143,23 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
           method === "left" ? "user left" : "user removed"
         );
         socket.emit("new message", alertMessage, selectedChat);
-        socket.emit("remove user", method === "left" ? user : selectedUser, selectedChat, method);
+        socket.emit(
+          "remove user",
+          method === "left" ? user : selectedUser,
+          selectedChat,
+          method
+        );
         setSelectedUser({});
       }
     } catch (err) {
       dispatch(setIsError(true));
     }
-    dispatch(handleLoading(false))
+    dispatch(handleLoading(false));
   };
 
   const promoteOrDemoteAdmin = async (method: string) => {
-    dispatch(handleLoading(true))
-    const url =
-      method === "promote"
-        ? "/group-chat/promote-admin"
-        : "/group-chat/demote-admin";
+    dispatch(handleLoading(true));
+    const url = `/groups/${selectedChat._id}/admins/${method}`;
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/${url}`, {
         method: "PUT",
@@ -171,12 +187,11 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
           selectedUser._id,
           selectedChat
         );
-
       }
     } catch (err) {
       dispatch(setIsError(true));
     }
-    dispatch(handleLoading(false))
+    dispatch(handleLoading(false));
   };
   const isGroupChat = useMemo(() => selectedChat.isGroupChat, [selectedChat]);
 
@@ -186,16 +201,16 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
     const reader = new FileReader();
 
     reader.onload = async (e: any) => {
-      changeTheme(null, selectedChat, e.target.result)
+      changeTheme(null, selectedChat, e.target.result);
     };
 
     reader.readAsDataURL(file);
-  }
+  };
 
   const changeTheme = async (themeDetails: any, chat: ChatType, file: any) => {
-    dispatch(handleLoading(true))
+    dispatch(handleLoading(true));
     try {
-      const theme: any = await changeChatTheme(themeDetails, chat, file)
+      const theme: any = await changeChatTheme(themeDetails, chat, file);
       const alertMessage: any = await alertMessageFunc(
         selectedChat._id,
         "changed chat theme",
@@ -203,19 +218,29 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
         null,
         "chat theme changed"
       );
-      socket.emit("change theme", theme, selectedChat, alertMessage)
+      socket.emit("change theme", theme, selectedChat, alertMessage);
     } catch (err) {
-      dispatch(setIsError(true))
+      dispatch(setIsError(true));
     }
-    dispatch(handleLoading(false))
-    dispatch(handleShowProfile(false))
-  }
+    dispatch(handleLoading(false));
+    dispatch(handleShowProfile(false));
+  };
 
   const blockAndUnblockUser = async (method: string) => {
-    dispatch(handleLoading(true))
+    dispatch(handleLoading(true));
     try {
       const chat: ChatType = selectedChat;
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/${method === "block" ? "block-user" : "unblock-user"}`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ blockUserId: chatInfo(selectedChat, user)._id }) })
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/${loggedInUser._id}/block`,
+        {
+          method: method == "block" ? "POST" : "DELETE",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            blockUserId: chatInfo(selectedChat, user)._id,
+          }),
+        }
+      );
 
       const alertMessage: any = await alertMessageFunc(
         selectedChat._id,
@@ -223,24 +248,35 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
         user,
         //@ts-ignore
         chatInfo(selectedChat, user),
-        method !== "block" ? "unBlocked" : "blocked",
+        method !== "block" ? "unBlocked" : "blocked"
       );
       dispatch(addNewMessage({ newMessage: alertMessage }));
-      socket.emit(isUserBlocked ? "unBlock user" : "block user", user._id, chatInfo(chat, user)._id, chat)
+      socket.emit(
+        isUserBlocked ? "unBlock user" : "block user",
+        user._id,
+        chatInfo(chat, user)._id,
+        chat
+      );
     } catch (err) {
-      dispatch(setIsError(true))
+      dispatch(setIsError(true));
     }
-    dispatch(handleLoading(false))
-    dispatch(handleShowProfile(false))
-  }
+    dispatch(handleLoading(false));
+    dispatch(handleShowProfile(false));
+  };
 
   return (
     <>
-      {confirmLeaveGroup && <ConfirmDialog heading="Leave group?" body={`Are you sure you u want to leave "${selectedChat.name}"?`} btnText="Confirm" onCancle={() => setConfirmLeaveGroup(false)} onConfirm={() => removeUser("left")} />}
-
+      {confirmLeaveGroup && (
+        <ConfirmDialog
+          heading="Leave group?"
+          body={`Are you sure you u want to leave "${selectedChat.name}"?`}
+          btnText="Confirm"
+          onCancle={() => setConfirmLeaveGroup(false)}
+          onConfirm={() => removeUser("left")}
+        />
+      )}
 
       <div className={`${styles.container}`}>
-
         {showAdminOptions && selectedUser._id !== user._id ? (
           <div
             className={`${styles.shadow} flex`}
@@ -255,29 +291,46 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
                 </div>
               </div>
               <div className={styles.options}>
-                <p onClick={() => loadChat(dispatch, navigate, user, selectedUser, socket)}>Message {selectedUser.username}</p>
+                <p
+                  onClick={() =>
+                    loadChat(dispatch, navigate, user, selectedUser, socket)
+                  }
+                >
+                  Message {selectedUser.username}
+                </p>
                 {
                   //@ts-ignore
-                  selectedChat.admins.includes(user._id) && (selectedChat.admins.includes(selectedUser._id) ? (
-                    <p onClick={() => promoteOrDemoteAdmin("demote")}>
-                      Remove {selectedUser.username} from admin
-                    </p>
-                  ) : (
-                    <p onClick={() => promoteOrDemoteAdmin("promote")}>
-                      Promote {selectedUser.username} to admin
-                    </p>
-                  ))}
+                  selectedChat.admins.includes(user._id) &&
+                    (selectedChat.admins.includes(selectedUser._id) ? (
+                      <p onClick={() => promoteOrDemoteAdmin("demote")}>
+                        Remove {selectedUser.username} from admin
+                      </p>
+                    ) : (
+                      <p onClick={() => promoteOrDemoteAdmin("promote")}>
+                        Promote {selectedUser.username} to admin
+                      </p>
+                    ))
+                }
                 {
                   //@ts-ignore
-                  selectedChat.admins.includes(user._id) && <p onClick={() => removeUser("remove")}>
-                    Remove {selectedUser.username} from group
-                  </p>}
+                  selectedChat.admins.includes(user._id) && (
+                    <p onClick={() => removeUser("remove")}>
+                      Remove {selectedUser.username} from group
+                    </p>
+                  )
+                }
               </div>
             </div>
           </div>
         ) : null}
 
-        <AiOutlineClose className={styles.dclc} onClick={() => { dispatch(handleShowProfile(false)); dispatch(handleShowAdminOptions(false)) }} />
+        <AiOutlineClose
+          className={styles.dclc}
+          onClick={() => {
+            dispatch(handleShowProfile(false));
+            dispatch(handleShowAdminOptions(false));
+          }}
+        />
         <>
           <ProfileDetails data={chatInfo(selectedChat, user)} />
 
@@ -290,18 +343,21 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
                 borderTop: "1px solid var(--lighter-background)",
               }}
             >
-              <span style={{ color: "var(--primary-text-color)" }}>Members</span>
+              <span style={{ color: "var(--primary-text-color)" }}>
+                Members
+              </span>
 
               <div style={{ width: "100%" }}>
                 {selectedChat.users.map((data: UserType) => {
                   return (
+                    //@ts-ignore
                     <UserBox
                       isAdminTagNeeded={true}
                       getChat={true}
                       user={data}
                       socket={socket}
                       setSelectedUser={setSelectedUser}
-                    // func={addUser}
+                      // func={addUser}
                     />
                   );
                 })}
@@ -325,7 +381,7 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
               <Input
                 onInput={(e: any) => {
                   setSearchQuery(e.target.value);
-                  searchUsers(setSearchResults, setLoading, e.target.value)
+                  searchUsers(setSearchResults, setLoading, e.target.value);
                 }}
                 value={searchQuery}
                 style={{
@@ -345,21 +401,37 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
               >
                 {loading ? (
                   <Loader />
-                ) : searchResults.filter((data: UserType) => !selectedChat.users.map((u: UserType) => u._id).includes(data._id)).length > 0 && searchQuery.trim().length > 0 ? (
-                  searchResults.filter((data: UserType) => !selectedChat.users.map((u: UserType) => u._id).includes(data._id)).map((data: UserType) => {
-                    return (
-                      <UserBox
-                        isAdminTagNeeded={false}
-                        func={addUser}
-                        getChat={false}
-                        user={data}
-                        socket={socket}
-                        setSearchQuery={setSearchQuery}
-                      />
-                    );
-                  })
+                ) : searchResults.filter(
+                    (data: UserType) =>
+                      !selectedChat.users
+                        .map((u: UserType) => u._id)
+                        .includes(data._id)
+                  ).length > 0 && searchQuery.trim().length > 0 ? (
+                  searchResults
+                    .filter(
+                      (data: UserType) =>
+                        !selectedChat.users
+                          .map((u: UserType) => u._id)
+                          .includes(data._id)
+                    )
+                    .map((data: UserType) => {
+                      return (
+                        //@ts-expect-error
+                        <UserBox
+                          isAdminTagNeeded={false}
+                          func={addUser}
+                          getChat={false}
+                          user={data}
+                          socket={socket}
+                          setSearchQuery={setSearchQuery}
+                        />
+                      );
+                    })
                 ) : (
-                  <div style={{ width: "100%", height: "200px" }} className="flex">
+                  <div
+                    style={{ width: "100%", height: "200px" }}
+                    className="flex"
+                  >
                     <p>
                       {searchQuery.trim().length > 0 ? (
                         "No user found"
@@ -384,7 +456,12 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
             heading={true}
           /> */}
           <div className={styles.part_two} style={{ marginTop: "10px" }}>
-            <input type="file" ref={inputRef} onChange={uploadCustomTheme} style={{ display: "none" }} />
+            <input
+              type="file"
+              ref={inputRef}
+              onChange={uploadCustomTheme}
+              style={{ display: "none" }}
+            />
             <p>Change Theme</p>
             <ul style={{ rowGap: "7px" }}>
               {themes.map((theme) => {
@@ -397,27 +474,59 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
                           : "2px solid var(--lighter-background)",
                     }}
                     key={theme.name}
-                    onClick={() => changeTheme(theme, selectedChat, null)
-                    }
+                    onClick={() => changeTheme(theme, selectedChat, null)}
                   >
                     <img src={theme.URL} alt={theme.name} />
                   </li>
                 );
               })}
-              <li style={{ border: "2px solid var(--lighter-background)" }} onClick={() => inputRef.current.click()}>
+              <li
+                style={{ border: "2px solid var(--lighter-background)" }}
+                onClick={() => inputRef.current.click()}
+              >
                 <IoMdAdd />
               </li>
             </ul>
           </div>
 
-
           <div style={{ marginTop: "20px", width: "100%" }}>
-            {selectedChat.isGroupChat ? !selectedChat?.isRemoved.status &&
-              <Button onClick={() => setConfirmLeaveGroup(true)} style={{ padding: "13px", fontSize: "0.8rem", color: "var(--primary-text-color)", background: "var(--lighter-background)", width: "100%", borderRadius: "7px" }} children="Leave group" />
-              :
-              <Button onClick={() => blockAndUnblockUser(isUserBlocked ? "un-block" : "block")} style={{ padding: "13px", fontSize: "0.8rem", color: "var(--primary-text-color)", background: "var(--lighter-background)", width: "100%", borderRadius: "7px" }} children={isUserBlocked ? `UnBlock ${chatInfo(selectedChat, user).name}` : `Block ${chatInfo(selectedChat, user).name}`} />}
+            {selectedChat.isGroupChat ? (
+              //@ts-expect-error
+              !selectedChat?.isRemoved.status && (
+                <Button
+                  onClick={() => setConfirmLeaveGroup(true)}
+                  style={{
+                    padding: "13px",
+                    fontSize: "0.8rem",
+                    color: "var(--primary-text-color)",
+                    background: "var(--lighter-background)",
+                    width: "100%",
+                    borderRadius: "7px",
+                  }}
+                  children="Leave group"
+                />
+              )
+            ) : (
+              <Button
+                onClick={() =>
+                  blockAndUnblockUser(isUserBlocked ? "un-block" : "block")
+                }
+                style={{
+                  padding: "13px",
+                  fontSize: "0.8rem",
+                  color: "var(--primary-text-color)",
+                  background: "var(--lighter-background)",
+                  width: "100%",
+                  borderRadius: "7px",
+                }}
+                children={
+                  isUserBlocked
+                    ? `UnBlock ${chatInfo(selectedChat, user).name}`
+                    : `Block ${chatInfo(selectedChat, user).name}`
+                }
+              />
+            )}
           </div>
-
         </>
       </div>
     </>

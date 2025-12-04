@@ -63,8 +63,8 @@ const MessageOptions: FC<MessageOptionsProps> = ({ socket }) => {
       emoji,
       selectedChat
     )
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/${isAlreadyReacted ? "remove-reaction" : "add-reaction"}`, {
-      method: "PUT",
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/messages/${selectedMessage._id}/reactions`, {
+      method: isAlreadyReacted ? "DELETE" : "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: loggedInUser._id, messageId: selectedMessage._id, emoji: emoji })

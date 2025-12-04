@@ -6,6 +6,7 @@ const donwloadFile = (data: MessageType) => {
       const fileURL = window.URL.createObjectURL(blob);
       let alink: HTMLAnchorElement = document.createElement("a");
       alink.href = fileURL;
+      //@ts-ignore
       alink.download = data.fileName;
       alink.click();
     });

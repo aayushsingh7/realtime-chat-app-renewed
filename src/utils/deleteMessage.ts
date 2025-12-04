@@ -9,7 +9,7 @@ const deleteMessage = async (
   socket.emit("delete message", userId, messageIds, selectedChat);
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/delete-message`,
+      `${import.meta.env.VITE_API_URL}/messages`,
       {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },

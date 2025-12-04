@@ -97,6 +97,9 @@ export interface ChatType {
   theme?: ThemeType;
   email?: string;
   isBlocked?:boolean;
+  isRemoved:{
+    status:boolean;
+  }
 }
 
 export interface StatusType {

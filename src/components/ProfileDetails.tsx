@@ -74,7 +74,7 @@ const ProfileDetails: FC<ProfileDetailsProps> = ({ data, setShowAlertMessage }) 
   const handleSaveChanges = async () => {
     dispatch(handleLoading(true))
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/update-profile`, { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...userDetails, file: imagePreview ? userDetails.image : null }) })
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...userDetails, file: imagePreview ? userDetails.image : null }) })
       const data = await response.json()
       setShowAlertMessage(true)
     } catch (err) {
@@ -93,7 +93,10 @@ const ProfileDetails: FC<ProfileDetailsProps> = ({ data, setShowAlertMessage }) 
     <>
       <div className={styles.profile_pic} onClick={handleInputClick}>
         <img src={isEditing ? imagePreview ? imagePreview : userDetails.image : data.image} alt="" />
-        <input accept="image/*" style={{ display: "none" }} type="file" onChange={handleUpload} ref={inputRef} />
+        
+        <input accept="image/*" style={{ display: "none" }} type="file" onChange={handleUpload} 
+        //@ts-expect-error
+        ref={inputRef} />
         {isEditing && <IoMdAdd />}
       </div>
       <div className={styles.details}>

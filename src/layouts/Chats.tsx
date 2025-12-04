@@ -109,7 +109,7 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
   const loadingMoreChatsFunc = async () => {
     try {
       loadingMoreChats.current = true
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/load-more-chats?offset=${offset.current}&&userId=${loggedInUser._id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/chats/load-more?offset=${offset.current}&&userId=${loggedInUser._id}`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" }
@@ -164,13 +164,13 @@ const Chats: FC<ChatsProps> = ({ socket }) => {
             !location.pathname.startsWith("/status") && <Input
               onInput={(e: any) => {
                 setSearchQuery(e.target.value);
-                searchUsers(
+              }}
+              onKeyDown={(e)=> e.key == "Enter" && searchUsers(
                   setSearchResults,
                   setLoading,
-                  e.target.value,
+                  searchQuery,
                   showStarredMessages
-                )
-              }}
+                )}
               value={searchQuery}
               style={{
                 padding: "15px 20px",

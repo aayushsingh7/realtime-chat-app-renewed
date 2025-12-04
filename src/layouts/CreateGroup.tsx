@@ -26,7 +26,7 @@ const CreateGroup: FC<CreateGroupProps> = ({ socket }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [searchResults, setSearchResults] = useState<UserType[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<UserType[]>([
+  const [selectedUsers, setSelectedUsers] = useState<any[]>([
     { _id: loggedInUser._id, username: loggedInUser.username },
   ]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -87,7 +87,7 @@ const CreateGroup: FC<CreateGroupProps> = ({ socket }) => {
     try {
       setImgWarning(false)
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/group-chat/create-new-group`,
+        `${import.meta.env.VITE_API_URL}/groups`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -114,9 +114,11 @@ const CreateGroup: FC<CreateGroupProps> = ({ socket }) => {
           document: false,
           message: `Aayush created group "Ganesh"`,
           msgType: "alert",
-          seenBy: [{ _id: loggedInUser._id, name: loggedInUser.name }],
+          //@ts-expect-error
+          seenBy: [loggedInUser._id],
+          //@ts-ignore
           sender: {
-            _id: "ariagaroe=29re",
+            _id: import.meta.env.VITE_MESSAGE_BOT_ID,
             name: "message_bot",
             image: "..."
           },
@@ -234,6 +236,7 @@ const CreateGroup: FC<CreateGroupProps> = ({ socket }) => {
                 ) : searchResults.length > 0 ? (
                   searchResults.map((user: UserType) => {
                     return (
+                      //@ts-expect-error
                       <UserBox
                         getChat={false}
                         key={user._id}

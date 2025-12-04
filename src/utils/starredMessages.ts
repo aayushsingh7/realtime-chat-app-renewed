@@ -13,25 +13,18 @@ const starredMessagesFunc = async (
   try {
     if (isRemoveStarredMessage) {
       dispatch(
-        removeStarredMessages(messageIds) // Pass ONLY the array
+        removeStarredMessages(messageIds)
       );
     } else {
       dispatch(
-        starMessages(messageIds) // Pass ONLY the array
+        starMessages(messageIds) 
       );
     }
 
-    // Now this will run because the error above is gone
-    window.alert("Api call starting..."); 
-
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}${
-        isRemoveStarredMessage
-          ? "/remove-from-star-messages"
-          : "/add-to-star-messages"
-      }`,
+      `${import.meta.env.VITE_API_URL}/messages/star`,
       {
-        method: "PUT",
+        method: isRemoveStarredMessage ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
@@ -43,7 +36,6 @@ const starredMessagesFunc = async (
     );
     const data = await response.json();
   } catch (err) {
-    // IMPORTANT: Always log the error so you aren't working in the dark!
     console.error("Error in starredMessagesFunc:", err);
   }
 };

@@ -21,7 +21,7 @@ const Login: FC<LoginProps> = ({ }) => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: "POST",
         body: JSON.stringify({ email:guestLogin ? "guest@gmail.com" : email, password:guestLogin ? "guest" : password }),
         credentials: "include",

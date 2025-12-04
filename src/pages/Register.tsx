@@ -22,7 +22,7 @@ const Register: FC<RegisterProps> = ({ }) => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
         method: "POST",
         body: JSON.stringify({ email, password, username, name }),
         credentials: "include",

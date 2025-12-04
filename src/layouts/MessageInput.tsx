@@ -172,8 +172,8 @@ const MessageInput: FC<MessageInputProps> = ({
       };
     try {
       requestProcessing.current = true;
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/new-message`, {
-        method: "PUT",
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
+        method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
