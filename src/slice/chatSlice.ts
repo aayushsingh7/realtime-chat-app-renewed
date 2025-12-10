@@ -9,9 +9,11 @@ import {
 } from "../types/types";
 
 const initialState = {
-  chats: [chat],
-  selectedChat: chat,
-  messages: [], // This is now the main storage for the active chat's messages
+  chats: [],
+  selectedChat: {},
+  messages: [],
+  lastSeenMessagePerChat: {},
+  participants: {},
   messagesLoading: true,
   chatsLoading: true,
   viewMessage: message,
@@ -43,9 +45,7 @@ export const fetchMessages = createAsyncThunk(
   "chatSlice/fetchMessages",
   async (chatId: string) => {
     let response = await fetch(
-      `${
-        import.meta.env.VITE_API_URL
-      }/messages?chatId=${chatId}&offset=${0}`,
+      `${import.meta.env.VITE_API_URL}/messages?chatId=${chatId}&offset=${0}`,
       {
         method: "GET",
         credentials: "include",
@@ -194,6 +194,7 @@ const chatSlice = createSlice({
 
       // NEW: Update state.messages instead of selectedChat.messages
       if (dummyMessageId) {
+        // window.alert("dummayMessageId")
         state.messages = state.messages.map((message: MessageType) => {
           if (message._id === dummyMessageId) {
             return { ...newMessage, message: message.message };
@@ -203,10 +204,19 @@ const chatSlice = createSlice({
         });
         state.selectedChat.latestMessage = newMessage;
       } else {
-        state.messages = [...state.messages, newMessage];
+        // window.alert("normal message")
+        state.messages.push(newMessage);
         state.selectedChat.latestMessage = newMessage;
       }
 
+      //@ts-ignore
+      if (
+        state.lastSeenMessagePerChat[state.selectedChat._id].lastSeenMessage <
+        newMessage._id
+      ) {
+        //@ts-ignore
+        state.lastSeenMessagePerChat[state.selectedChat._id].unreadCount += 1;
+      }
       //@ts-ignore
       state.chats = state.chats
         .map((chat: ChatType) => {
@@ -228,6 +238,15 @@ const chatSlice = createSlice({
     },
     updateChats(state, action) {
       const { newMessage, chatId } = action.payload;
+
+      //@ts-ignore
+      if (
+        state.lastSeenMessagePerChat[chatId].lastSeenMessage < newMessage._id
+      ) {
+        //@ts-ignore
+        state.lastSeenMessagePerChat[chatId].unreadCount += 1;
+      }
+
       //@ts-ignore
       state.chats = state.chats
         .map((chat: ChatType) => {
@@ -363,8 +382,7 @@ const chatSlice = createSlice({
     //     userId,
     //   }: { messageIds: string[]; chatId: string; userId: string } =
     //     action.payload;
-      
-       
+
     // },
     // removeStarredMessage(state, action) {
     //   const {
@@ -400,38 +418,65 @@ const chatSlice = createSlice({
     },
     addUserInGroup(state, action) {
       const { newUser } = action.payload;
-      state.selectedChat.users = [...state.selectedChat.users, newUser];
-      state.selectedChat.removedUsers = state.selectedChat.removedUsers.filter(
-        (u: any) => u._id !== newUser._id
-      );
-      return state;
+      state.selectedChat.users.push(newUser);
+      state.selectedChat.isRemoved.status = false;
+      state.chats = state.chats.map((chat: any) => {
+        if (chat._id == state.selectedChat._id) {
+          return {
+            ...chat,
+            isRemoved: { status: false },
+            users: [...chat.users, newUser],
+          };
+        } else {
+          return chat;
+        }
+      });
     },
     removeUserFromGroup(state, action) {
       const { newUser } = action.payload;
-      state.selectedChat = {
-        ...state.selectedChat,
-        removedUsers: [
-          //@ts-ignore
-          ...state.selectedChat.removedUsers,
-          { _id: newUser._id, createdAt: new Date().toISOString() },
-        ],
-        users: state.selectedChat.users.filter(
-          (user: UserType) => user._id !== newUser._id
-        ),
-      };
+      state.selectedChat.users = state.selectedChat.users.filter(
+        (user: any) => user._id !== newUser._id
+      );
+      state.selectedChat.isRemoved.status = true;
+
+      state.chats = state.chats.map((chat: any) => {
+        if (chat._id === state.selectedChat._id) {
+          return {
+            ...chat,
+            users: state.selectedChat.users,
+            isRemoved: { status: true },
+          };
+        } else {
+          return chat;
+        }
+      });
     },
     promoteAdmin(state, action) {
       const { userId } = action.payload;
-      state.selectedChat.admins = [...state.selectedChat.admins, userId];
-      return state;
+
+      state.selectedChat.admins.push(userId);
+      state.chats = state.chats.map((chat: any) => {
+        if (chat._id === state.selectedChat._id) {
+          return { ...chat, admins: state.selectedChat.admins };
+        } else {
+          return chat;
+        }
+      });
     },
+
     removeFromAdmin(state, action) {
       const { userId } = action.payload;
-      //@ts-ignore
       state.selectedChat.admins = state.selectedChat.admins.filter(
         (uId: string) => uId !== userId
       );
-      return state;
+
+      state.chats = state.chats.map((chat: any) => {
+        if (chat._id === state.selectedChat._id) {
+          return { ...chat, admins: state.selectedChat.admins };
+        } else {
+          return chat;
+        }
+      });
     },
     handleShowStarredMessages(state, action) {
       state.showStarredMessages = action.payload;
@@ -441,70 +486,27 @@ const chatSlice = createSlice({
     },
     messageSeen(state, action) {
       const { messageIds, chatId, user } = action.payload;
-
-      state.selectedChat = {
-        ...state.selectedChat,
-        latestMessage: {
-          ...state.selectedChat.latestMessage,
-          seenBy: [
-            //@ts-ignore
-            ...state.selectedChat.latestMessage.seenBy,
-            { _id: user._id, username: user.username },
-          ],
-        },
-      };
-
-      // NEW: Update state.messages
-      //@ts-ignore
-      state.messages = state.messages.map((message: MessageType) => {
-        if (messageIds.includes(message._id)) {
-          return {
-            ...message,
-            seenBy: [
-              ...message.seenBy,
-              { _id: user._id, username: user.username },
-            ],
-          };
-        } else {
-          return message;
-        }
-      });
-
-      //@ts-ignore
-      state.chats = state.chats.map((chat: ChatType) => {
-        if (chat._id === chatId) {
-          return {
-            ...chat,
-            latestMessage: {
-              ...chat.latestMessage,
-              seenBy: [
-                ...chat.latestMessage.seenBy,
-                { _id: user._id, username: user.username },
-              ],
-            },
-            // REMOVED: messages array update inside chat
-          };
-        } else {
-          return chat;
-        }
-      });
     },
     handleShowChats(state, action) {
       state.showChats = action.payload;
     },
     leaveGroup(state, action) {
       const { userId } = action.payload;
-      state.selectedChat = {
-        ...state.selectedChat,
-        removedUsers: [
-          //@ts-ignore
-          ...state.selectedChat.removedUsers,
-          { _id: userId, createdAt: new Date().toISOString() },
-        ],
-        users: state.selectedChat.users.filter(
-          (user: UserType) => user._id !== userId
-        ),
-      };
+      state.selectedChat.users = state.selectedChat.users.filter(
+        (u: any) => u._id != userId
+      );
+      state.selectedChat.isRemoved.status = true;
+      state.chats = state.chats.map((chat: any) => {
+        if (chat._id == state.selectedChat._id) {
+          return {
+            ...chat,
+            isRemoved: { status: true },
+            users: state.selectedChat.users,
+          };
+        } else {
+          return chat;
+        }
+      });
     },
     handleIsMoreMessages(state, action) {
       state.isMoreMessages = action.payload;
@@ -515,10 +517,29 @@ const chatSlice = createSlice({
     handleFetchChat(state, action) {
       state.fetchChat = action.payload;
     },
-      blockCurrChat(state, action) {
-        console.log("TRIGGERED")
+    blockCurrChat(state, action) {
+      console.log("TRIGGERED");
       //@ts-expect-error
-      state.selectedChat.isBlocked = true
+      state.selectedChat.isBlocked = true;
+    },
+    updateChatLastSeen(state, action) {
+      const { chatId, messageId, userId } = action.payload;
+      //@ts-ignore
+      state.lastSeenMessagePerChat[chatId] = {
+        lastSeenMessage: messageId,
+        unreadCount: 0,
+      };
+      // @ts-ignore
+      state.participants[userId] = messageId;
+    },
+    updateParticipantLastSeen(state, action) {
+      const { userId, messageId } = action.payload;
+
+      // Force a new reference assignment
+      state.participants = {  
+        ...state.participants,
+        [userId]: messageId,
+      };
     },
   },
   extraReducers: (builder) => {
@@ -527,6 +548,12 @@ const chatSlice = createSlice({
     });
     builder.addCase(fetchChats.fulfilled, (state, action) => {
       state.chats = action.payload.chats;
+      state.lastSeenMessagePerChat = Object.fromEntries(
+        action.payload.lastSeenMessagePerChat.map((m: any) => [
+          m.chat,
+          { lastSeenMessage: m.lastSeenMessage, unreadCount: m.unreadCount },
+        ])
+      );
       state.isMoreChats = action.payload.isMore;
       state.chatsLoading = false;
     });
@@ -538,7 +565,7 @@ const chatSlice = createSlice({
     });
     builder.addCase(fetchMessages.fulfilled, (state, action) => {
       state.messagesLoading = false;
-      const { chat, messages, isMore } = action.payload;
+      const { chat, messages, isMore, user } = action.payload;
 
       // Update selectedChat metadata if provided (but WITHOUT messages field)
       if (chat) {
@@ -548,6 +575,16 @@ const chatSlice = createSlice({
       // NEW: Populate state.messages directly
       // Assuming payload now returns 'messages' separate from 'chat'
       state.messages = messages ? messages.reverse() : [];
+      console.log(state.messages);
+      //@ts-ignore
+      state.lastSeenMessagePerChat[state.selectedChat._id] = {
+        lastSeenMessage: state.selectedChat.latestMessage._id,
+        unreadCount: 0,
+      };
+      state.participants = Object.fromEntries(
+        action.payload.participants.map((m: any) => [m.user, m.lastSeenMessage])
+      );
+      state.participants[user] = state.selectedChat.latestMessage._id;
       state.isMoreMessages = isMore;
     });
     builder.addCase(fetchMessages.rejected, (state) => {
@@ -574,6 +611,7 @@ export const {
   addNewMessage,
   setViewMessage,
   changeTheme,
+  updateParticipantLastSeen,
   addChat,
   handleCreateNewChatLoading,
   selectExistingChat,
@@ -603,6 +641,7 @@ export const {
   handleIsMoreChats,
   setMoreLoadedChats,
   handleFetchChat,
+  updateChatLastSeen,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

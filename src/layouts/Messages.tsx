@@ -16,7 +16,6 @@ import {
 } from "../slice/chatSlice";
 import { ChatType, MessageType, UserType } from "../types/types";
 import chatInfo from "../utils/chatInfo";
-import messageSeenFunc from "../utils/messageSeenFunc";
 import { setIsError } from "../slice/utilitySlices";
 
 interface MessagesProps {
@@ -70,6 +69,12 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
 
     //@ts-ignore
     dispatch(fetchMessages(id));
+    socket.emit("message seen", {
+      username: loggedInUser.name,
+      userId: loggedInUser._id,
+      chat: selectedChat,
+      messageId: selectedChat.latestMessage._id,
+    });
   }, [id]);
 
   useEffect(() => {
@@ -81,27 +86,6 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
       inline: "nearest",
     });
   }, [messages && messages.length]);
-
-  useEffect(() => {
-    if (selectedChat._id && messages.length > 0) {
-      const unSeenMessagesID = messages
-        .filter(
-          (message) =>
-            !message.seenBy.some((user) => user._id === loggedInUser._id)
-        )
-        .map((message) => message._id);
-
-      if (unSeenMessagesID.length > 0) {
-        socket.emit(
-          "message seen",
-          unSeenMessagesID,
-          selectedChat,
-          loggedInUser
-        );
-        messageSeenFunc(unSeenMessagesID);
-      }
-    }
-  }, [selectedChat, loggedInUser, socket, messageSeenFunc]);
 
   useEffect(() => {
     //@ts-ignore
@@ -245,7 +229,7 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
         {selectedChat._id ? (
           //@ts-ignore
           <ChatNavbar
-          //@ts-expect-error
+            //@ts-expect-error
             typingUser={typingUser}
             selectedMessages={selectedMessages}
             socket={socket}
@@ -291,20 +275,51 @@ const Messages: FC<MessagesProps> = ({ socket }) => {
           <span className="seen_indicator" ref={messageRef}></span>
         </div>
 
-
         {selectedChat._id ? (
-          isUserBlockedByLoggedInUser ?
-            <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children={`You have blocked ${chatInfo(selectedChat, loggedInUser).name}, unblock to continue chatting.`} /> :
-            isLoggedInUserBlocked ?
-              <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children="You can no longer be able to send messages in this chat" />
-              : selectedChat.isRemoved.status ? <Button style={{ width: "100%", padding: "16px", color: "var(--secondary-text-color)", background: "var(--primary-background)", fontSize: "0.8rem" }} children="You can't sent messages to this group because you're no longer a member." /> :
-                <MessageInput
-                  socket={socket}
-                  setTyping={setTyping}
-                  typing={typing}
-                  isTyping={isTyping}
-                />
-        ) : null} 
+          isUserBlockedByLoggedInUser ? (
+            <Button
+              style={{
+                width: "100%",
+                padding: "16px",
+                color: "var(--secondary-text-color)",
+                background: "var(--primary-background)",
+                fontSize: "0.8rem",
+              }}
+              children={`You have blocked ${
+                chatInfo(selectedChat, loggedInUser).name
+              }, unblock to continue chatting.`}
+            />
+          ) : isLoggedInUserBlocked ? (
+            <Button
+              style={{
+                width: "100%",
+                padding: "16px",
+                color: "var(--secondary-text-color)",
+                background: "var(--primary-background)",
+                fontSize: "0.8rem",
+              }}
+              children="You can no longer be able to send messages in this chat"
+            />
+          ) : selectedChat.isRemoved.status ? (
+            <Button
+              style={{
+                width: "100%",
+                padding: "16px",
+                color: "var(--secondary-text-color)",
+                background: "var(--primary-background)",
+                fontSize: "0.8rem",
+              }}
+              children="You can't sent messages to this group because you're no longer a member."
+            />
+          ) : (
+            <MessageInput
+              socket={socket}
+              setTyping={setTyping}
+              typing={typing}
+              isTyping={isTyping}
+            />
+          )
+        ) : null}
       </div>
       {showProfile && <Profile socket={socket} />}
     </>

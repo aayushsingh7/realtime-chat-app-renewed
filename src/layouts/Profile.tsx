@@ -121,9 +121,7 @@ const Profile: FC<ProfileProps> = ({ socket }) => {
     dispatch(handleLoading(true));
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/groups/${selectedChat._id}/groups/${
-          selectedChat._id
-        }/users/remove`,
+        `${import.meta.env.VITE_API_URL}/groups/${selectedChat._id}/users/remove`,
         {
           method: "PUT",
           credentials: "include",

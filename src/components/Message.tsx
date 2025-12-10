@@ -1,4 +1,4 @@
-import { FC, useMemo, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { FileIcon, defaultStyles } from "react-file-icon";
 import { AiFillStar } from "react-icons/ai";
 import { BsCheck2All, BsSend } from "react-icons/bs";
@@ -20,6 +20,7 @@ import formatTime from "../utils/formatTime";
 import isNewUserMessage from "../utils/isNewUserMessage";
 import scrollToMessage from "../utils/scrollToMessage";
 import Button from "./Button";
+import useChatStatus from "../hooks/useChatStatus";
 
 interface MessageProps {
   data: MessageType;
@@ -37,15 +38,30 @@ const Message: FC<MessageProps> = ({
   const dispatch = useAppDispatch();
   const componentRef = useRef(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
-  const { loggedInUser }: { loggedInUser: UserType } = useCustomSelector((state) => state.user);
+  const { loggedInUser }: { loggedInUser: UserType } = useCustomSelector(
+    (state) => state.user
+  );
   const isSender = loggedInUser._id === data.sender?._id;
-  const { selectedChat, messages }: { selectedChat: ChatType, messages:MessageType[] } = useCustomSelector((state) => state.chats);
+  const {
+    selectedChat,
+    messages,
+  }: { selectedChat: ChatType; messages: MessageType[] } =
+    useCustomSelector((state) => state.chats);
+   const participants = useCustomSelector((state)=> state.chats.participants)
+  const oldestLastSeen = useChatStatus(Object.entries(participants));
+
+  useEffect(()=> {
+   if(data._id == messages[messages.length - 1]._id) {
+    // console.log(oldestLastSeen)
+    console.log(participants,{username:loggedInUser.username, _id:loggedInUser._id, oldestLastSeen})
+   }
+  }, [participants])
 
   const navigateUser = () => {
     if (selectMessagesOption) return;
     if (!data.document && data.msgType !== "text" && data.msgType !== "alert") {
       dispatch(setViewMessage(data));
-      dispatch(handleViewFile(true))
+      dispatch(handleViewFile(true));
     }
   };
 
@@ -64,7 +80,7 @@ const Message: FC<MessageProps> = ({
     .map((message) => message._id)
     .includes(data._id);
 
-  let everyoneIncluded: boolean = data.seenBy.length == selectedChat.users.length;
+  // let everyoneIncluded: boolean = data.seenBy.length == selectedChat.users.length;
 
   // console.log(loggedInUser.starredMessages)
 
@@ -75,17 +91,19 @@ const Message: FC<MessageProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
-      className={`${styles.container} ${data.msgType === "alert"
-        ? styles.alert
-        : isSender
+      className={`${styles.container} ${
+        data.msgType === "alert"
+          ? styles.alert
+          : isSender
           ? styles.sender
           : styles.receiver
-        } ${selectMessagesOption && data.msgType !== "alert"
+      } ${
+        selectMessagesOption && data.msgType !== "alert"
           ? messageSelected
             ? styles.selected
             : styles.select_msg
           : ""
-        }`}
+      }`}
       style={{
         justifyContent: isSender
           ? selectMessagesOption
@@ -96,50 +114,55 @@ const Message: FC<MessageProps> = ({
     >
       {isHovered && !selectMessagesOption && data.msgType !== "alert"
         ? isSender && (
-          <div
-            className={styles.message_options}
-            onClick={() => {
-              dispatch(handleShowMessageOption(true));
-              dispatch(selectMessage(data));
-              func(data, messageSelected);
-            }}
-          >
-            {" "}
-            <FaRegSmileBeam /> <FaChevronDown />
-          </div>
-        )
+            <div
+              className={styles.message_options}
+              onClick={() => {
+                dispatch(handleShowMessageOption(true));
+                dispatch(selectMessage(data));
+                func(data, messageSelected);
+              }}
+            >
+              {" "}
+              <FaRegSmileBeam /> <FaChevronDown />
+            </div>
+          )
         : null}
 
-      {(selectMessagesOption && data.msgType !== "alert") && (
+      {selectMessagesOption && data.msgType !== "alert" && (
         <div
-          className={`${styles.checkbox} ${messageSelected ? styles.checked : styles.unchecked
-            }`}
+          className={`${styles.checkbox} ${
+            messageSelected ? styles.checked : styles.unchecked
+          }`}
         >
           {messageSelected && <FaCheck />}
         </div>
       )}
 
-      {
-        selectedChat.isGroupChat && data.sender._id !== import.meta.env.VITE_MESSAGE_BOT_ID && data.sender._id !== loggedInUser._id ?
-          <div className={styles.group_user_pic}>
-            {!isNewUserMessage(messages, data) && <img loading="eager" alt="user" src={data.sender.image} />}
-          </div> : null
-      }
+      {selectedChat.isGroupChat &&
+      data.sender._id !== import.meta.env.VITE_MESSAGE_BOT_ID &&
+      data.sender._id !== loggedInUser._id ? (
+        <div className={styles.group_user_pic}>
+          {!isNewUserMessage(messages, data) && (
+            <img loading="eager" alt="user" src={data.sender.image} />
+          )}
+        </div>
+      ) : null}
 
       <div
-        className={`${styles.msg_con}  ${data.msgType !== "text"
-          ? `${styles.fixed_width}`
-          : `${styles.auto_width}`
-          }`}
+        className={`${styles.msg_con}  ${
+          data.msgType !== "text"
+            ? `${styles.fixed_width}`
+            : `${styles.auto_width}`
+        }`}
         style={{
           width: data.document ? "330px" : "auto",
-          marginBottom: data.reactEmoji && data.reactEmoji?.length > 0 ? "2px" : "0px",
-          transform: `translateX(${!data.status || data.status === "sent" ? "0px" : "-20px"
-            })`,
+          marginBottom:
+            data.reactEmoji && data.reactEmoji?.length > 0 ? "2px" : "0px",
+          transform: `translateX(${
+            !data.status || data.status === "sent" ? "0px" : "-20px"
+          })`,
         }}
       >
-
-
         <div
           className={`${styles.content_container}`}
           style={{
@@ -147,18 +170,32 @@ const Message: FC<MessageProps> = ({
               data.msgType.includes("image") || data.msgType.includes("video")
                 ? "8px 8px 0px 8px"
                 : data.document
-                  ? "10px 10px 0px 10px"
-                  : "10px 10px 2px 10px",
-            marginTop: isNewUserMessage(messages, data) ? "4px" : "7px"
+                ? "10px 10px 0px 10px"
+                : "10px 10px 2px 10px",
+            marginTop: isNewUserMessage(messages, data) ? "4px" : "7px",
           }}
           onClick={navigateUser}
         >
-          {(selectedChat.isGroupChat && !isNewUserMessage(messages, data) && data.sender._id !== loggedInUser._id) && <span style={{fontSize:"14px",fontWeight:"600",color:"var(--random-light-color-one)",marginBottom:"3px"}}>{data.sender.name}</span>}
+          {selectedChat.isGroupChat &&
+            !isNewUserMessage(messages, data) &&
+            data.sender._id !== loggedInUser._id && (
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "var(--random-light-color-one)",
+                  marginBottom: "3px",
+                }}
+              >
+                {data.sender.name}
+              </span>
+            )}
           {data.isReply ? (
             <div className={styles.reply} style={{ cursor: "pointer" }}>
               <div
                 className={styles.replied_to}
-                onClick={() => data.repliedTo &&
+                onClick={() =>
+                  data.repliedTo &&
                   scrollToMessage(data.repliedTo?._id, styles.selected)
                 }
               >
@@ -178,14 +215,14 @@ const Message: FC<MessageProps> = ({
                         data.repliedTo?.fileName.lastIndexOf(".") + 1
                       )}
                       {...defaultStyles[
-                      data.repliedTo?.fileName?.substring(
-                        data.repliedTo.fileName?.lastIndexOf(".") + 1
-                      )
+                        data.repliedTo?.fileName?.substring(
+                          data.repliedTo.fileName?.lastIndexOf(".") + 1
+                        )
                       ]}
                     />
                   )}
                   {data.repliedTo?.msgType.includes("image") ||
-                    data.repliedTo?.msgType.includes("video") ? null : (
+                  data.repliedTo?.msgType.includes("video") ? null : (
                     <span>{data.repliedTo?.fileName}</span>
                   )}
                 </div>
@@ -260,44 +297,75 @@ const Message: FC<MessageProps> = ({
             <video src={data.message}></video>
           ) : (
             <p className={styles.text_message}>
-              {data.moderator && (data.moderator._id === loggedInUser._id ? "You" : data.moderator.name)} {data.message}{" "}
-              {data.user && data.user.name}
+              {data.moderator &&
+                (data.moderator._id === loggedInUser._id
+                  ? "You"
+                  : data.moderator.name)}{" "}
+              {data.message} {data.user && data.user.name}
               {data?.eventPerformed === "promoted to admin" && " to admin"}
               {data?.eventPerformed === "remove from admin" && " from admin"}
             </p>
           )}
-          {data.caption && <p className={styles.text_message}>{data.caption}</p>}
+          {data.caption && (
+            <p className={styles.text_message}>{data.caption}</p>
+          )}
           {data.msgType !== "alert" && (
             <span className={styles.timestamp}>
               {data.createdAt && formatTime(data.createdAt)}
               {loggedInUser?.starredMessages?.includes(data._id) ? (
                 <AiFillStar />
               ) : null}
-              {data.status === "sending" || data.status === "error" ? null : data.sender._id === loggedInUser._id ? everyoneIncluded ? <BsCheck2All style={{ color: "var(--seen-message-color)", fontSize: "16px", marginLeft: "5px" }} /> :
-                <BsCheck2All style={{ fontSize: "16px", marginLeft: "5px" }} /> : null}
+              {data.status === "sending" ||
+              data.status === "error" ? null : data.sender._id ===
+                loggedInUser._id ? (
+                oldestLastSeen >= data._id ? (
+                  <BsCheck2All
+                    style={{
+                      color: "var(--seen-message-color)",
+                      fontSize: "16px",
+                      marginLeft: "5px",
+                    }}
+                  />
+                ) : (
+                  <BsCheck2All
+                    style={{ fontSize: "16px", marginLeft: "5px" }}
+                  />
+                )
+              ) : null}
             </span>
           )}
         </div>
 
         {data.reactEmoji && data.reactEmoji?.length > 0 ? (
-          <span className={styles.react} onClick={() => { dispatch(handleViewReaction(true)); dispatch(selectMessage(data)); dispatch(handleShowMessageOption(true)) }}>{data.reactEmoji?.slice(0, 3).map((react) => react.emoji)} {data.reactEmoji?.length > 1 && `${data.reactEmoji?.length > 9 ? "9+" : data.reactEmoji?.length}`}</span>
+          <span
+            className={styles.react}
+            onClick={() => {
+              dispatch(handleViewReaction(true));
+              dispatch(selectMessage(data));
+              dispatch(handleShowMessageOption(true));
+            }}
+          >
+            {data.reactEmoji?.slice(0, 3).map((react) => react.emoji)}{" "}
+            {data.reactEmoji?.length > 1 &&
+              `${data.reactEmoji?.length > 9 ? "9+" : data.reactEmoji?.length}`}
+          </span>
         ) : null}
       </div>
 
       {isHovered && !selectMessagesOption && data.msgType !== "alert"
         ? !isSender && (
-          <div
-            className={styles.message_options}
-            onClick={() => {
-              dispatch(handleShowMessageOption(true));
-              dispatch(selectMessage(data));
-              func(data, messageSelected);
-            }}
-          >
-            {" "}
-            <FaChevronDown /> <FaRegSmileBeam />
-          </div>
-        )
+            <div
+              className={styles.message_options}
+              onClick={() => {
+                dispatch(handleShowMessageOption(true));
+                dispatch(selectMessage(data));
+                func(data, messageSelected);
+              }}
+            >
+              {" "}
+              <FaChevronDown /> <FaRegSmileBeam />
+            </div>
+          )
         : null}
 
       {data.status == "sending" ? <BsSend className={styles.sending} /> : null}

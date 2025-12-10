@@ -55,7 +55,7 @@ export interface UserType {
   activeStatus: boolean;
   latestStatus: StatusType;
   starredMessages: Array<string>;
-  clearedChats:Map<string, Date>;
+  clearedChats: Map<string, Date>;
   deletedChats: Map<string, Date>;
 }
 
@@ -96,10 +96,13 @@ export interface ChatType {
   slogan?: string;
   theme?: ThemeType;
   email?: string;
-  isBlocked?:boolean;
-  isRemoved:{
-    status:boolean;
-  }
+  isBlocked?: boolean;
+  isRemoved: {
+    status: boolean;
+  };
+  isLatestMessageSeen: boolean;
+  unreadCount: number;
+  hasUnreadMessages: boolean; 
 }
 
 export interface StatusType {

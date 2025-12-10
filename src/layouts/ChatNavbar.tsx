@@ -67,7 +67,7 @@ const ChatNavbar: FC<ChatNavbarProps> = ({ typingUser, isTyping, selectedMessage
         <BsArrowLeft
           className={styles.exit_chat}
           onClick={() => {
-            dispatch(handleShowChats(true))
+            dispatch(handleShowChats(true));
             navigate("/");
             dispatch(setSelectedChat({}));
           }}

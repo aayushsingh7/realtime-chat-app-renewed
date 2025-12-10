@@ -3,10 +3,7 @@ import { FileIcon, defaultStyles } from "react-file-icon";
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import { GrAttachment } from "react-icons/gr";
 import { IoIosSend } from "react-icons/io";
-import {
-  IoDocumentAttachOutline,
-  IoImageOutline
-} from "react-icons/io5";
+import { IoDocumentAttachOutline, IoImageOutline } from "react-icons/io5";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Preview from "../components/Preview";
@@ -16,12 +13,13 @@ import {
   addNewMessage,
   handleIsReplying,
   sendingMessage,
+  updateChatLastSeen,
 } from "../slice/chatSlice";
 import {
   handleDiscardFileUpload,
   handleShowPreview,
   handleShowUploadOption,
-  setIsError
+  setIsError,
 } from "../slice/utilitySlices";
 import styles from "../styles/MessageInput.module.css";
 import { MessageType, UserType } from "../types/types";
@@ -41,11 +39,14 @@ const MessageInput: FC<MessageInputProps> = ({
   setTyping,
   typing,
 }) => {
-  const { showUploadOptions, showPreview, discardFileUpload } = useCustomSelector(
-    (state) => state.utilitySlices
-  )
-  const { loggedInUser } = useCustomSelector((state) => state.user) as { loggedInUser: UserType };
-  const { selectedChat, isReplying, selectedMessage } = useCustomSelector((state) => state.chats)
+  const { showUploadOptions, showPreview, discardFileUpload } =
+    useCustomSelector((state) => state.utilitySlices);
+  const { loggedInUser } = useCustomSelector((state) => state.user) as {
+    loggedInUser: UserType;
+  };
+  const { selectedChat, isReplying, selectedMessage } = useCustomSelector(
+    (state) => state.chats
+  );
   const dispatch = useAppDispatch();
   const imageAndVideoRef = useRef<HTMLInputElement>(null);
   const documentRef = useRef<HTMLInputElement>(null);
@@ -57,7 +58,7 @@ const MessageInput: FC<MessageInputProps> = ({
   const [fileSize, setFileSize] = useState<number>(0);
   const [extensionName, setExtensionName] = useState<string>("");
   const [selectedFormat, setSelectedFormat] = useState<string>("");
-  const [caption, setCaption] = useState<string>("")
+  const [caption, setCaption] = useState<string>("");
   const [file, setFile] = useState<any>(null);
   const messageQueue = useRef<MessageType[]>([]);
   const requestProcessing = useRef<boolean>(false);
@@ -96,26 +97,25 @@ const MessageInput: FC<MessageInputProps> = ({
 
       reader.readAsDataURL(file);
     } catch (error) {
-      dispatch(setIsError(true))
+      dispatch(setIsError(true));
     }
   };
 
-
   const addMessagesToQueue = async (e?: any) => {
-    if (showPreview && !previewUrl || !showPreview && !textMessage) return
-    if (e && e.key === "Enter" || e && e.type === "click") {
+    if ((showPreview && !previewUrl) || (!showPreview && !textMessage)) return;
+    if ((e && e.key === "Enter") || (e && e.type === "click")) {
       dispatch(handleIsReplying(false));
       const dummyMessage: MessageType = {
         _id: generateID(),
         isReply: isReplying,
         repliedTo: isReplying
           ? {
-            _id: selectedMessage._id,
-            sender: { name: selectedMessage.sender.name },
-            message: selectedMessage.message,
-            fileName: selectedMessage.fileName,
-            msgType: selectedMessage.msgType,
-          }
+              _id: selectedMessage._id,
+              sender: { name: selectedMessage.sender.name },
+              message: selectedMessage.message,
+              fileName: selectedMessage.fileName,
+              msgType: selectedMessage.msgType,
+            }
           : {},
         createdAt: new Date().toISOString(),
         document: selectedFormat === "Document" ? true : false,
@@ -151,25 +151,25 @@ const MessageInput: FC<MessageInputProps> = ({
   const sendNewMessage = async (currentMessage: MessageType) => {
     const requestBody = file
       ? {
-        isReply: isReplying,
-        repliedTo: selectedMessage._id,
-        file: file,
-        msgType: currentMessage.msgType,
-        chatId: selectedChat._id,
-        document: currentMessage.document,
-        fileName: fileName,
-        fileSize: currentMessage.fileSize,
-        caption: caption,
-      }
+          isReply: isReplying,
+          repliedTo: selectedMessage._id,
+          file: file,
+          msgType: currentMessage.msgType,
+          chatId: selectedChat._id,
+          document: currentMessage.document,
+          fileName: fileName,
+          fileSize: currentMessage.fileSize,
+          caption: caption,
+        }
       : {
-        isReply: isReplying,
-        repliedTo: selectedMessage._id,
-        message: currentMessage.message,
-        msgType: currentMessage.msgType,
-        chatId: selectedChat._id,
-        fileName: fileName,
-        document: currentMessage.document,
-      };
+          isReply: isReplying,
+          repliedTo: selectedMessage._id,
+          message: currentMessage.message,
+          msgType: currentMessage.msgType,
+          chatId: selectedChat._id,
+          fileName: fileName,
+          document: currentMessage.document,
+        };
     try {
       requestProcessing.current = true;
       const response = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
@@ -191,6 +191,19 @@ const MessageInput: FC<MessageInputProps> = ({
       );
       addMessagesToQueue();
       socket.emit("new message", data.newMessage, selectedChat);
+      socket.emit("message seen", {
+        username: loggedInUser.name,
+        userId: loggedInUser._id,
+        chat: selectedChat,
+        messageId: data.newMessage._id,
+      });
+      dispatch(
+        updateChatLastSeen({
+          chatId: selectedChat._id,
+          messageId: data.newMessage._id,
+          userId: loggedInUser._id,
+        })
+      );
     } catch (err) {
       dispatch(
         addNewMessage({
@@ -233,7 +246,19 @@ const MessageInput: FC<MessageInputProps> = ({
 
   return (
     <>
-      {discardFileUpload && <ConfirmDialog onCancle={() => dispatch(handleDiscardFileUpload(false))} onConfirm={() => { dispatch(handleShowPreview(false)); dispatch(handleDiscardFileUpload(false)) }} heading="Discard message?" body="Are you sure you want to discard message?" btnText="Discard" btnText2={"Retur to media"} />}
+      {discardFileUpload && (
+        <ConfirmDialog
+          onCancle={() => dispatch(handleDiscardFileUpload(false))}
+          onConfirm={() => {
+            dispatch(handleShowPreview(false));
+            dispatch(handleDiscardFileUpload(false));
+          }}
+          heading="Discard message?"
+          body="Are you sure you want to discard message?"
+          btnText="Discard"
+          btnText2={"Retur to media"}
+        />
+      )}
       <div
         style={{
           width: "100%",
@@ -261,9 +286,9 @@ const MessageInput: FC<MessageInputProps> = ({
                         selectedMessage.fileName.lastIndexOf(".") + 1
                       )}
                       {...defaultStyles[
-                      selectedMessage.fileName?.substring(
-                        selectedMessage.fileName.lastIndexOf(".") + 1
-                      )
+                        selectedMessage.fileName?.substring(
+                          selectedMessage.fileName.lastIndexOf(".") + 1
+                        )
                       ]}
                     />
                     <span>{selectedMessage.fileName}</span>
@@ -341,7 +366,9 @@ const MessageInput: FC<MessageInputProps> = ({
               />
 
               <Button
-                onClick={() => imageAndVideoRef.current && imageAndVideoRef.current.click()}
+                onClick={() =>
+                  imageAndVideoRef.current && imageAndVideoRef.current.click()
+                }
                 style={{
                   width: "100%",
                   borderRadius: "5px",
@@ -361,10 +388,10 @@ const MessageInput: FC<MessageInputProps> = ({
                 }
               />
 
-
-
               <Button
-                onClick={() => documentRef.current && documentRef.current.click()}
+                onClick={() =>
+                  documentRef.current && documentRef.current.click()
+                }
                 style={{
                   width: "100%",
                   borderRadius: "5px",
@@ -386,13 +413,17 @@ const MessageInput: FC<MessageInputProps> = ({
             </div>
           )}
 
-          <div
-            className={styles.container}
-          >
-
-            {showPreview && <div className={styles.custom_shadow} onClick={() => dispatch(handleDiscardFileUpload(true))}></div>}
+          <div className={styles.container}>
+            {showPreview && (
+              <div
+                className={styles.custom_shadow}
+                onClick={() => dispatch(handleDiscardFileUpload(true))}
+              ></div>
+            )}
             <Button
-              onClick={() => dispatch(handleShowUploadOption(!showUploadOptions))}
+              onClick={() =>
+                dispatch(handleShowUploadOption(!showUploadOptions))
+              }
               style={{
                 width: "50px",
                 height: "45px",
@@ -431,7 +462,9 @@ const MessageInput: FC<MessageInputProps> = ({
               style={{
                 width: "50px",
                 height: "45px",
-                background: !textMessage ? "var(--light-background)" : "var(--highlight-background)",
+                background: !textMessage
+                  ? "var(--light-background)"
+                  : "var(--highlight-background)",
                 marginLeft: "10px",
                 borderRadius: "10px",
                 flexShrink: "0",

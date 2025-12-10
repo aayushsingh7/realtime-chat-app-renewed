@@ -31,7 +31,9 @@ import {
   removeFromAdmin,
   removeReactionFromMessage,
   removeUserFromGroup,
+  updateChatLastSeen,
   updateChats,
+  updateParticipantLastSeen,
 } from "./slice/chatSlice";
 import {
   handleAskPermission,
@@ -40,21 +42,34 @@ import {
   handleShowProfile,
   handleShowSettings,
   handleShowUploadOption,
-  setIsError
+  setIsError,
 } from "./slice/utilitySlices";
 import "./styles/global.css";
-import { ChatType, MessageType, Notification_Settings, UserType } from "./types/types";
+import {
+  ChatType,
+  MessageType,
+  Notification_Settings,
+  UserType,
+} from "./types/types";
 import sendNotification from "./utils/sendNotification";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Status from "./pages/Status";
 import { blockUser, unBlockUser } from "./slice/userSlice";
+import updateLastMessageSeen from "./utils/updateLastMessageSeen";
 
-interface AppProps { }
+interface AppProps {}
 
 const App: FC<AppProps> = () => {
-  const { selectedChat, createGroup, isReplying } = useCustomSelector((state) => state.chats);
+  const {
+    selectedChat,
+    createGroup,
+    isReplying,
+    messages,
+    participants,
+    lastSeenMessagePerChat,
+  } = useCustomSelector((state) => state.chats);
   const [socketConnected, setSocketConnection] = useState<boolean>(false);
-  const { loggedInUser } = useCustomSelector((state) => state.user)
+  const { loggedInUser } = useCustomSelector((state) => state.user);
 
   const dispatch = useAppDispatch();
   const socketRef = useRef<any>(null);
@@ -63,8 +78,8 @@ const App: FC<AppProps> = () => {
     if (!loggedInUser._id) return;
     socketRef.current = io(import.meta.env.VITE_SOCKET_URL, {
       auth: {
-        token: loggedInUser._id
-      }
+        token: loggedInUser._id,
+      },
     });
 
     socketRef.current.on("connect", () => {
@@ -75,16 +90,45 @@ const App: FC<AppProps> = () => {
 
   useEffect(() => {
     if (!socketRef.current) return;
-    const notification_settings: Notification_Settings = JSON.parse(localStorage.getItem("notification_settings") || '{}')
+    const notification_settings: Notification_Settings = JSON.parse(
+      localStorage.getItem("notification_settings") || "{}"
+    );
     const newMessageHandler = (newMessage: MessageType, chat: ChatType) => {
+      console.log({ chatId: chat._id, selectedChatId: selectedChat._id });
       if (chat && chat._id === selectedChat._id) {
+        // document.addEventListener("visibilitychange", () => {
+        //   if (document.visibilityState === "visible") {
+        dispatch(
+          updateChatLastSeen({
+            chatId: selectedChat._id,
+            messageId: newMessage._id,
+            userId: loggedInUser._id,
+          })
+        );
+        //   }
+        // });
         dispatch(addNewMessage({ newMessage: newMessage }));
+        // window.alert("new message received")
+        socketRef.current.emit("message seen", {
+          username: loggedInUser.name,
+          userId: loggedInUser._id,
+          chat: selectedChat,
+          messageId: newMessage._id,
+        });
       } else {
         dispatch(updateChats({ newMessage: newMessage, chatId: chat._id }));
         if (notification_settings.messages_notifications) {
-          sendNotification("New Message!", `${newMessage.sender.name}: ${newMessage.msgType !== "text" ? newMessage.fileName : newMessage.message}`, `new message id: ${newMessage._id}`, `https://chatverse-chat.netlify.app/chat/${chat._id}`)
+          sendNotification(
+            "New Message!",
+            `${newMessage.sender.name}: ${
+              newMessage.msgType !== "text"
+                ? newMessage.fileName
+                : newMessage.message
+            }`,
+            `new message id: ${newMessage._id}`,
+            `https://chatverse-chat.netlify.app/chat/${chat._id}`
+          );
         }
-
       }
     };
 
@@ -94,7 +138,6 @@ const App: FC<AppProps> = () => {
       emoji: string,
       chat: ChatType
     ) => {
-
       if (chat && chat._id === selectedChat._id) {
         dispatch(
           reactOnMessage({
@@ -104,8 +147,17 @@ const App: FC<AppProps> = () => {
           })
         );
       } else {
-        if (message.sender._id === loggedInUser._id && user._id !== loggedInUser._id && notification_settings.react_on_message_notifications) {
-          sendNotification("Reacted on message", `${user.name} reacted "${emoji}" on your message`, `reaction ${message._id}`, `https://chatverse-chat.netlify.app/chat/${chat._id}`)
+        if (
+          message.sender._id === loggedInUser._id &&
+          user._id !== loggedInUser._id &&
+          notification_settings.react_on_message_notifications
+        ) {
+          sendNotification(
+            "Reacted on message",
+            `${user.name} reacted "${emoji}" on your message`,
+            `reaction ${message._id}`,
+            `https://chatverse-chat.netlify.app/chat/${chat._id}`
+          );
         }
       }
     };
@@ -125,7 +177,7 @@ const App: FC<AppProps> = () => {
           })
         );
       }
-    }
+    };
 
     const deleteMessage = (
       userId: string,
@@ -146,20 +198,20 @@ const App: FC<AppProps> = () => {
     };
 
     const addUser = (userData: UserType, newChat: ChatType, chat: ChatType) => {
-      window.alert("new user added")
       if (chat && chat._id === selectedChat._id) {
+        // window.alert("new user added");
         dispatch(addUserInGroup({ newUser: userData }));
       }
       if (userData._id === loggedInUser._id) {
-        dispatch(addChat({ chat: newChat }))
+        dispatch(addChat({ chat: newChat }));
       }
     };
 
     const removeUser = (userData: UserType, chat: ChatType, method: string) => {
-      window.alert("group leave")
+      // window.alert("group leave");
       if (chat && chat._id === selectedChat._id) {
         if (method === "left") {
-          dispatch(leaveGroup({ userId: userData._id }))
+          dispatch(leaveGroup({ userId: userData._id }));
         } else {
           dispatch(removeUserFromGroup({ newUser: userData }));
         }
@@ -174,7 +226,7 @@ const App: FC<AppProps> = () => {
       if (chat && chat._id === selectedChat._id) {
         dispatch(promoteAdmin({ userId: promotedUserId }));
       }
-    };      
+    };
 
     const removeFromAdminFunc = (
       removerUserId: string,
@@ -187,14 +239,13 @@ const App: FC<AppProps> = () => {
     };
 
     // user are getting their own id's in seen
-    const messageSeenFunc = (messageIds: string[], chat: ChatType, user: UserType) => {
-      if (chat && chat._id === selectedChat._id) {
-
+    const messageSeenFunc = (data: any) => {
+      if (data.chat && data.chat._id === selectedChat._id) {
+        console.log(data);
         dispatch(
-          messageSeen({
-            messageIds,
-            user: user,
-            chatId: chat._id
+          updateParticipantLastSeen({
+            userId: data.userId,
+            messageId: data.messageId,
           })
         );
       }
@@ -203,12 +254,10 @@ const App: FC<AppProps> = () => {
     const changeThemeFunc = async (
       theme: any,
       chat: ChatType,
-      alertMessage: MessageType,
+      alertMessage: MessageType
     ) => {
       if (chat && chat._id === selectedChat._id) {
-        dispatch(
-          changeTheme(theme)
-        );
+        dispatch(changeTheme(theme));
         if (chat && chat._id === selectedChat._id) {
           dispatch(addNewMessage({ newMessage: alertMessage }));
         } else {
@@ -217,17 +266,21 @@ const App: FC<AppProps> = () => {
       }
     };
 
-    const blockUserFunc = (userId: string, blockedUserId: string, chat:ChatType ) => {
-        if(selectedChat._id == chat._id && blockedUserId == loggedInUser._id) {
-          dispatch(blockCurrChat(true))
-        }else{
-          dispatch(blockUser({ userId, blockedUserId }))
-        }
-    }
+    const blockUserFunc = (
+      userId: string,
+      blockedUserId: string,
+      chat: ChatType
+    ) => {
+      if (selectedChat._id == chat._id && blockedUserId == loggedInUser._id) {
+        dispatch(blockCurrChat(true));
+      } else {
+        dispatch(blockUser({ userId, blockedUserId }));
+      }
+    };
 
     const unBlockUserFunc = (userId: string, blockedUserId: string) => {
-      dispatch(unBlockUser({ userId, blockedUserId }))
-    }
+      dispatch(unBlockUser({ userId, blockedUserId }));
+    };
 
     socketRef.current.on("create new chat triggered", createNewChat);
     socketRef.current.on("new message received", newMessageHandler);
@@ -239,12 +292,9 @@ const App: FC<AppProps> = () => {
     socketRef.current.on("removed from admin", removeFromAdminFunc);
     socketRef.current.on("message seen received", messageSeenFunc);
     socketRef.current.on("theme changed", changeThemeFunc);
-    socketRef.current.on("remove reaction", removeReaction)
-    socketRef.current.on("user blocked", blockUserFunc)
-    socketRef.current.on("user unBlocked", unBlockUserFunc)
-
-
-
+    socketRef.current.on("remove reaction", removeReaction);
+    socketRef.current.on("user blocked", blockUserFunc);
+    socketRef.current.on("user unBlocked", unBlockUserFunc);
 
     return () => {
       socketRef.current.off("new message received", newMessageHandler);
@@ -257,85 +307,178 @@ const App: FC<AppProps> = () => {
       socketRef.current.off("removed from admin", removeFromAdminFunc);
       socketRef.current.off("message seen received", messageSeenFunc);
       socketRef.current.off("theme changed", changeThemeFunc);
-      socketRef.current.off("remove reaction", removeReaction)
-      socketRef.current.off("user blocked", blockUserFunc)
-      socketRef.current.off("user unBlocked", unBlockUserFunc)
+      socketRef.current.off("remove reaction", removeReaction);
+      socketRef.current.off("user blocked", blockUserFunc);
+      socketRef.current.off("user unBlocked", unBlockUserFunc);
     };
-  }, [dispatch, selectedChat?._id, socketRef.current]);
+  }, [selectedChat._id, socketRef.current]);
 
-  const { verify, showUploadOptions, showPreview, showProfile, showSettings, isError, askPermission, showLoading, viewFile } =
-    useCustomSelector((state) => state.utilitySlices);
-  
+  useEffect(() => {
+    // Simple check to determine if the device is mobile
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // 1. Define the sync logic (the "Leaving" logic)
+    const syncUserData = () => {
+      if (selectedChat && loggedInUser && selectedChat._id) {
+        // Your existing API call with keepAlive: true
+        updateLastMessageSeen(Object.entries(lastSeenMessagePerChat));
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      // CASE A: User comes BACK to the tab (Desktop & Mobile)
+      if (document.visibilityState === "visible") {
+        if (selectedChat && loggedInUser && selectedChat.latestMessage) {
+          dispatch(
+            updateChatLastSeen({
+              chatId: selectedChat._id,
+              messageId: selectedChat.latestMessage._id,
+              userId: loggedInUser._id,
+            })
+          );
+        }
+      }
+      // CASE B: User leaves the tab (Mobile Only)
+      // On desktop, we ignore this to prevent API spam when just switching tabs
+      else if (document.visibilityState === "hidden" && isMobile) {
+        syncUserData();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      // CASE C: User closes tab/window or refreshes (Desktop mainly)
+      syncUserData();
+    };
+
+    // Add Listeners
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Only add 'beforeunload' listener for Desktop to handle Close/Refresh
+    if (!isMobile) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (!isMobile) {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      }
+    };
+  }, [selectedChat, loggedInUser, lastSeenMessagePerChat, dispatch]);
+
+  const {
+    verify,
+    showUploadOptions,
+    showPreview,
+    showProfile,
+    showSettings,
+    isError,
+    askPermission,
+    showLoading,
+    viewFile,
+  } = useCustomSelector((state) => state.utilitySlices);
+
   const navigate = useNavigate();
   useEffect(() => {
-    navigate("/")
-    dispatch(setIsError(false))
-  }, [])
+    navigate("/");
+    dispatch(setIsError(false));
+  }, []);
 
   const allowNotification = () => {
     Notification.requestPermission().then((permission: string) => {
       if (permission === "granted") {
-        localStorage.setItem("isNotificationPermitted", JSON.stringify(true))
-        localStorage.setItem("notification_permission_asked_on", JSON.stringify(new Date().toISOString()))
-        localStorage.setItem("notification_settings", JSON.stringify({ text_preview: true, messages_notifications: true, react_on_message_notifications: true, calls_notifications: true, media_preview: true }))
+        localStorage.setItem("isNotificationPermitted", JSON.stringify(true));
+        localStorage.setItem(
+          "notification_permission_asked_on",
+          JSON.stringify(new Date().toISOString())
+        );
+        localStorage.setItem(
+          "notification_settings",
+          JSON.stringify({
+            text_preview: true,
+            messages_notifications: true,
+            react_on_message_notifications: true,
+            calls_notifications: true,
+            media_preview: true,
+          })
+        );
       } else {
-        localStorage.setItem("isNotificationPermitted", JSON.stringify(false))
-        localStorage.setItem("notification_permission_asked_on", JSON.stringify(new Date().toISOString()))
-        localStorage.setItem("notification_settings", JSON.stringify({ text_preview: false, messages_notifications: false, react_on_message_notifications: false, calls_notifications: false, media_preview: false }))
+        localStorage.setItem("isNotificationPermitted", JSON.stringify(false));
+        localStorage.setItem(
+          "notification_permission_asked_on",
+          JSON.stringify(new Date().toISOString())
+        );
+        localStorage.setItem(
+          "notification_settings",
+          JSON.stringify({
+            text_preview: false,
+            messages_notifications: false,
+            react_on_message_notifications: false,
+            calls_notifications: false,
+            media_preview: false,
+          })
+        );
       }
-    })
-  }
-
-
+    });
+  };
 
   useEffect(() => {
     if (showLoading) {
-      document.body.style.overflow = "hidden"
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "auto"
+      document.body.style.overflow = "auto";
     }
-  }, [showLoading])
+  }, [showLoading]);
 
   return (
     <div className="app_container default">
       {showLoading && <LoadingTask />}
-      {viewFile && 
-      //@ts-ignore
-      <ViewFile position="fixed" />
-      }
+      {viewFile && (
+        //@ts-ignore
+        <ViewFile position="fixed" />
+      )}
       {verify && <Verify />}
       {isError && <Error />}
-      {askPermission &&
+      {askPermission && (
         <ConfirmDialog
           btnText="Allow notification"
           heading="Allow notifications?"
           body="Please presss 'allow' to get notifications and stay updated"
-          onCancle={() => { dispatch(handleAskPermission(false)); allowNotification() }}
-          onConfirm={() => { dispatch(handleAskPermission(false)); allowNotification() }} />}
+          onCancle={() => {
+            dispatch(handleAskPermission(false));
+            allowNotification();
+          }}
+          onConfirm={() => {
+            dispatch(handleAskPermission(false));
+            allowNotification();
+          }}
+        />
+      )}
       <div className="app">
         {showUploadOptions ||
-          showPreview ||
-          showProfile ||
-          showSettings ||
-          isReplying ||
-          createGroup ? (
+        showPreview ||
+        showProfile ||
+        showSettings ||
+        isReplying ||
+        createGroup ? (
           <div
-            className={`shadow ${showPreview || showSettings || isReplying
-              ? "darker flex"
-              : showProfile || createGroup
+            className={`shadow ${
+              showPreview || showSettings || isReplying
+                ? "darker flex"
+                : showProfile || createGroup
                 ? "darker-fast flex"
                 : "transparent"
-              }`}
+            }`}
             onClick={() => {
               dispatch(handleShowSettings(false));
               dispatch(handleShowUploadOption(false));
               dispatch(handleShowProfile(false));
               dispatch(handleShowAdminOptions(false));
-              showPreview && dispatch(handleDiscardFileUpload(true))
+              showPreview && dispatch(handleDiscardFileUpload(true));
             }}
           >
             {createGroup && <CreateGroup socket={socketRef.current} />}
-
           </div>
         ) : null}
 
@@ -359,7 +502,6 @@ const App: FC<AppProps> = () => {
                   socket={socketRef.current}
                   socketConnected={socketConnected}
                 />
-
               </ProtectedRoute>
             }
             path="/chat/:id"
@@ -369,20 +511,25 @@ const App: FC<AppProps> = () => {
               <ProtectedRoute>
                 <SideNavbar />
                 <Chats socket={socketRef.current} />
-                <Status
-                  socket={socketRef.current}
-                />
-
+                <Status socket={socketRef.current} />
               </ProtectedRoute>
             }
             path="/status"
           />
           <Route element={<Login />} path="/login" />
           <Route element={<Register />} path="/register" />
-          <Route element={<ProtectedRoute><SideNavbar /><Chats socket={socketRef.current} /> <NotFound /></ProtectedRoute>} path="*" />
+          <Route
+            element={
+              <ProtectedRoute>
+                <SideNavbar />
+                <Chats socket={socketRef.current} /> <NotFound />
+              </ProtectedRoute>
+            }
+            path="*"
+          />
         </Routes>
       </div>
-    </div >
+    </div>
   );
 };
 
