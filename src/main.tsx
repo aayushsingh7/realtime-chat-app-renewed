@@ -5,13 +5,16 @@ import "./global.css";
 import App from "./App.tsx";
 import {store} from "./store/store.ts";
 import {SocketProvider} from "./context/socketContext.tsx";
+import {BrowserRouter} from "react-router-dom";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <SocketProvider>
+        <BrowserRouter>
             <Provider store={store}>
-                <App />
+                <SocketProvider>
+                    <App />
+                </SocketProvider>
             </Provider>
-        </SocketProvider>
+        </BrowserRouter>
     </StrictMode>
 );
