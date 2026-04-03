@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import { FaCheck } from "react-icons/fa";
 
 type CheckboxProps = {
@@ -14,6 +14,11 @@ const  Checkbox:React.FC<CheckboxProps> =({checked, onChange}) => {
         setIsChecked(newVal);
         onChange?.(newVal);
     };
+
+    useEffect(()=> {
+    // @ts-expect-error
+    setIsChecked(checked)
+    }, [checked])
 
     return (
         <button

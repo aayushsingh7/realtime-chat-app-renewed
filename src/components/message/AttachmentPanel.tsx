@@ -1,7 +1,7 @@
-import React, {useState, useRef, useEffect} from "react";
-import {FiX, FiSmile, FiPlus} from "react-icons/fi";
-import {IoSend} from "react-icons/io5";
-import {HiOutlineDocument} from "react-icons/hi2";
+import React, { useEffect, useRef, useState } from "react";
+import { BsFillSendFill } from "react-icons/bs";
+import { FiPlus, FiSmile, FiX } from "react-icons/fi";
+import Button from "../ui/Button";
 
 interface AttachmentPanelProps {
     initialFiles?: File[];
@@ -16,7 +16,7 @@ interface Attachment {
     type: "image" | "video" | "document";
 }
 
-export default function AttachmentPanel({initialFiles = [], onClose, onSend}: AttachmentPanelProps) {
+const AttachmentPanel:React.FC<AttachmentPanelProps> = ({initialFiles = [], onClose, onSend})=>  {
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [message, setMessage] = useState("");
@@ -91,12 +91,7 @@ export default function AttachmentPanel({initialFiles = [], onClose, onSend}: At
         <div className="absolute inset-0 z-50 flex flex-col bg-[#1a1a1c] text-zinc-100 font-sans">
             <input type="file" multiple ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
             <div className="flex items-center px-4 py-4 h-16 flex-shrink-0">
-                <button
-                    onClick={onClose}
-                    className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-white/10 rounded-full transition-colors focus:outline-none"
-                >
-                    <FiX className="w-6 h-6" />
-                </button>
+                <Button variant="icon" Icon={FiX} iconSize={24} onClick={onClose} />
                 <div className="flex-1 text-center font-medium text-zinc-200 truncate px-4">
                     {activeAttachment ? activeAttachment.file.name : "No file selected"}
                 </div>
@@ -118,7 +113,7 @@ export default function AttachmentPanel({initialFiles = [], onClose, onSend}: At
                         className="max-w-full max-h-full rounded-md shadow-lg"
                     />
                 ) : (
-                    <div className="bg-[#111921] w-full max-w-[400px] aspect-[4/3] rounded-xl flex flex-col items-center justify-center shadow-md">
+                    <div className="bg-zinc-800 w-full max-w-[400px] aspect-[4/3] rounded-xl flex flex-col items-center justify-center shadow-md">
                         <div className="bg-white rounded w-16 h-20 relative mb-6 shadow-sm flex items-center justify-center">
                             <div className="absolute top-0 right-0 border-t-[16px] border-l-[16px] border-t-[#111921] border-l-gray-200 shadow-sm" />
                         </div>
@@ -154,7 +149,7 @@ export default function AttachmentPanel({initialFiles = [], onClose, onSend}: At
                             onClick={() => setSelectedIndex(index)}
                             className={`w-12 h-12 flex-shrink-0 rounded-lg flex items-center justify-center overflow-hidden transition-all ${
                                 selectedIndex === index
-                                    ? "border-2 border-[#25d366]"
+                                    ? "border-2 border-violet-600"
                                     : "border border-transparent hover:border-zinc-600"
                             } bg-[#2a2a2c]`}
                         >
@@ -180,15 +175,20 @@ export default function AttachmentPanel({initialFiles = [], onClose, onSend}: At
                 </div>
 
                 <div className="ml-auto">
-                    <button
+                    <Button
                         onClick={handleSend}
                         disabled={attachments.length === 0}
-                        className="w-12 h-12 flex items-center justify-center bg-[#00a884] hover:bg-[#008f6f] disabled:bg-zinc-700 disabled:text-zinc-500 text-black rounded-full transition-colors focus:outline-none"
-                    >
-                        <IoSend className="w-5 h-5 ml-1" />
-                    </button>
+                        variant="icon"
+                        Icon={BsFillSendFill}
+                        title="Attach file"
+                        iconSize={22}
+                        className="p-3 bg-violet-600 hover:bg-violet-500"
+                        iconClassName="text-white"
+                    />
                 </div>
             </div>
         </div>
     );
 }
+
+export default AttachmentPanel;

@@ -6,10 +6,13 @@ import {MdCheck} from "react-icons/md";
 import UserBox from "../ui/UserBox";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
+import { setGroupCreatorOpen } from "../../store/slices/uiSlice";
+import { useAppDispatch } from "../../store/hooks";
 
 interface CreateGroupSidebarProps {}
 
 const CreateGroupSidebar: React.FC<CreateGroupSidebarProps> = ({}) => {
+    const dispatch = useAppDispatch();
     const [previewUrl, setPreviewUrl] = useState<string>("");
     const [tab, setTab] = useState<number>(1);
     const groupMembers: any = [
@@ -27,35 +30,35 @@ const CreateGroupSidebar: React.FC<CreateGroupSidebarProps> = ({}) => {
         <aside className="w-full h-screen flex flex-col justify-between bg-zinc-900 border-r-3 border-zinc-800 shrink-0 text-zinc-100 py-3 items-center">
             <div className="w-full px-4 flex flex-col flex-1 min-h-0">
                 <div className="flex items-center mb-10 shrink-0">
-                    <button className="mr-3 p-2 hover:bg-zinc-800 hover:text-zinc-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-700">
+                    <button onClick={()=> dispatch(setGroupCreatorOpen(false))} className="mr-3 p-2 hover:bg-zinc-800 hover:text-zinc-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-700">
                         <IoMdClose className="text-2xl text-zinc-400" />
                     </button>
                     <h2 className="text-white font-medium text-lg">Create new group</h2>
                 </div>
 
                 {tab == 1 ? (
-                    <form className="flex flex-col items-center overflow-y-auto min-h-0 flex-1">
+                    <form className="flex flex-col items-center overflow-y-auto min-h-0 flex-1 px-1">
                         <input hidden id="group-pic" type="file" />
                         <label
                             htmlFor="group-pic"
-                            className="relative cursor-pointer flex w-30 h-30 bg-zinc-700 rounded-full shrink-0"
+                            className="flex items-center justify-center relative cursor-pointer w-30 h-30 bg-zinc-800 rounded-full shrink-0 border-3 border-violet-600"
                         >
-                            {previewUrl && (
+                            {previewUrl ?
                                 <img
                                     src={previewUrl}
                                     alt="Group Pic"
-                                    className="w-30 h-30 bg-zinc-700 rounded-full outline-none border-none object-cover"
+                                    className="w-30 h-30 bg-zinc-800 rounded-full outline-none border-none object-cover"
                                 />
-                            )}
+                            : <span className="text-3xl font-bold text-zinc-400">GC</span>}
                             <span>
-                                <FaPlus className="absolute bottom-2 right-1 text-xl w-7 h-7 p-1 rounded-full bg-violet-600" />
+                                <FaPlus className="absolute bottom-1 right-1 text-xl w-7 h-7 p-1 rounded-full bg-violet-600" />
                             </span>
                         </label>
 
                         <br />
                         <br />
 
-                        <Input placeholder="Group name here" />
+                        <Input placeholder="Group name here" className="rounded-[10px] pl-4" />
 
                         <textarea
                             placeholder="Group description here (optional)"

@@ -6,6 +6,8 @@ import type { MenuOption } from "../ui/ContextMenu";
 import ContextMenu from "../ui/ContextMenu";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
+import { setGroupCreatorOpen, setStarredMessagesOpen } from "../../store/slices/uiSlice";
+import { useAppDispatch } from "../../store/hooks";
 
 interface Chat {
     id: string;
@@ -20,6 +22,7 @@ interface Chat {
 }
 
 const ChatSidebar: React.FC = () => {
+    const dispatch = useAppDispatch();
     
     const mockChats: Chat[] = [
         {
@@ -58,8 +61,8 @@ const ChatSidebar: React.FC = () => {
     const [menuState, setMenuState] = useState({isOpen: false, x: 0, y: 0});
 
     const menuOptions: MenuOption[] = [
-        {text: "New group", icon: MdOutlineGroupAdd, func: () => console.log("Reply clicked")},
-        {text: "Starred messages", icon: FiStar, func: () => console.log("Copy clicked")},
+        {text: "New group", icon: MdOutlineGroupAdd, func: () => dispatch(setGroupCreatorOpen(true))},
+        {text: "Starred messages", icon: FiStar, func: () => dispatch(setStarredMessagesOpen(true))},
         {text: "Logout", icon: MdOutlineLogout, func: () => console.log("Pin clicked")},
     ];
 

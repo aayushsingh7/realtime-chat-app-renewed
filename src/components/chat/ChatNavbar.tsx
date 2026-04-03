@@ -6,6 +6,8 @@ import Button from "../ui/Button";
 import { IoAirplaneOutline } from "react-icons/io5";
 import { HiOutlineSearch } from "react-icons/hi";
 import { RiMore2Fill } from "react-icons/ri";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setChatInfoOpen, setSelectionMode } from "../../store/slices/uiSlice";
 
 interface ChatNavbarProps {
     userName?: string;
@@ -24,14 +26,15 @@ const ChatNavbar: React.FC<ChatNavbarProps> = ({
     onSearchClick,
     onOptionsClick,
 }) => {
-    const [editable, setEditable] = useState<boolean>(false);
+    const {isChatInfoOpen, isSelectionMode} = useAppSelector((state)=> state.ui)
+    const dispatch = useAppDispatch();
 
     return (
         <div className="h-[70px] w-full px-4 bg-zinc-900 border-b-3 border-zinc-800 flex items-center justify-between flex-shrink-0 select-none">
-            {editable ? (
+            {isSelectionMode ? (
                 <>
                     <div className="flex items-center justify-center">
-                        <button className="mr-5 p-2 hover:bg-zinc-800 hover:text-zinc-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-700">
+                        <button onClick={()=> dispatch(setSelectionMode(false))} className="mr-5 p-2 hover:bg-zinc-800 hover:text-zinc-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-700">
                             <IoMdClose className="text-2xl text-zinc-400" />
                         </button>
 
@@ -49,7 +52,7 @@ const ChatNavbar: React.FC<ChatNavbarProps> = ({
                 </>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 cursor-pointer py-1 px-2 -ml-2 rounded-lg hover:bg-zinc-800/50 transition-colors">
+                    <div onClick={()=> dispatch(setChatInfoOpen(!isChatInfoOpen))} className="flex items-center gap-3 cursor-pointer py-1 px-2 -ml-2 rounded-lg hover:bg-zinc-800/50 transition-colors">
                         <button className="sm:hidden text-zinc-400 hover:text-zinc-100 transition-colors mr-1">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
